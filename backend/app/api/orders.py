@@ -1,6 +1,7 @@
 import uuid
+import asyncio
 from typing import List, Dict, Any, Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from backend.app.database import get_db
 from backend.app.models.order import Order, OrderItem
@@ -10,13 +11,27 @@ from backend.app.models.fraud import FraudReview
 from backend.app.schemas.order import ProcessOrderRequest, OrderSummaryResponse
 from backend.app.schemas.order_state import OrderState, OrderItemState
 from backend.app.orchestrator.pipeline import OrderFulfillmentOrchestrator
+from backend.app.services.inventory_service import InventoryService
+from backend.app.api.websocket import ws_manager
 
 router = APIRouter(prefix="/api/orders", tags=["Orders"])
 orchestrator = OrderFulfillmentOrchestrator()
 
 
+async def broadcast_order_event(event_type: str, payload: dict):
+    """Helper to broadcast WebSocket events asynchronously."""
+    try:
+        await ws_manager.broadcast(event_type, payload)
+    except Exception as e:
+        pass
+
+
 @router.post("/process", response_model=OrderState)
-def process_order(request: ProcessOrderRequest, db: Session = Depends(get_db)):
+def process_order(
+    request: ProcessOrderRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
     """
     Primary endpoint: submits an order to the 5-Agent Multi-Agent Fulfillment Pipeline.
     Returns either a confirmed and dispatched order with tracking information,
@@ -50,29 +65,72 @@ def process_order(request: ProcessOrderRequest, db: Session = Depends(get_db)):
         db=db,
         simulated_failed_attempts=request.simulate_recent_failed_attempts or 0,
     )
+
+    # Broadcast event via WebSocket
+    background_tasks.add_task(
+        broadcast_order_event,
+        "ORDER_PROCESSED",
+        final_state.model_dump(mode="json"),
+    )
+
     return final_state
 
 
 @router.get("", response_model=List[OrderSummaryResponse])
 def get_orders(db: Session = Depends(get_db)):
     """List all orders in the system with their status and totals."""
-    return db.query(Order).order_by(Order.created_at.desc()).all()
+    orders = db.query(Order).order_by(Order.created_at.desc()).all()
+    results = []
+    for o in orders:
+        c_name = o.customer.name if o.customer else None
+        i_count = sum(item.quantity for item in o.items) if o.items else 0
+        results.append(
+            OrderSummaryResponse(
+                order_id=o.id,
+                customer_id=o.customer_id,
+                customer_name=c_name,
+                item_count=i_count,
+                status=o.status,
+                final_amount=o.total_amount or 0.0,
+                fraud_score=float(o.fraud_score or 0.0),
+                hold_reason=o.hold_reason,
+                tracking_id=o.tracking_id,
+                created_at=o.created_at,
+            )
+        )
+    return results
 
 
 @router.get("/queue/held")
 def get_held_orders(db: Session = Depends(get_db)):
-    """Retrieve orders currently held in the escalation review queue."""
+    """Retrieve orders currently held in the escalation review queue with full customer and fraud audit data."""
     held_orders = db.query(Order).filter(Order.status == "HELD").order_by(Order.created_at.desc()).all()
     results = []
     for o in held_orders:
         reviews = db.query(FraudReview).filter(FraudReview.order_id == o.id).all()
+        items = db.query(OrderItem).filter(OrderItem.order_id == o.id).all()
+        c = o.customer
         results.append({
             "order_id": o.id,
             "customer_id": o.customer_id,
+            "customer_name": c.name if c else "Unknown Customer",
+            "customer_email": c.email if c else None,
+            "shipping_address": o.shipping_address,
+            "total_amount": float(o.total_amount or 0.0),
             "status": o.status,
             "hold_reason": o.hold_reason,
             "fraud_score": float(o.fraud_score or 0.0),
             "created_at": o.created_at,
+            "items": [
+                {
+                    "sku": item.sku,
+                    "name": item.product_name,
+                    "quantity": item.quantity,
+                    "unit_price": float(item.unit_price),
+                    "total_price": float(item.total_price),
+                }
+                for item in items
+            ],
             "fraud_reviews": [
                 {
                     "fraud_score": float(r.fraud_score),
@@ -163,7 +221,12 @@ def get_order_details(order_id: str, db: Session = Depends(get_db)):
 
 
 @router.post("/{order_id}/override-hold")
-def override_held_order(order_id: str, auditor_notes: str = "Auditor manual verification passed", db: Session = Depends(get_db)):
+def override_held_order(
+    order_id: str,
+    background_tasks: BackgroundTasks,
+    auditor_notes: str = "Auditor manual verification passed",
+    db: Session = Depends(get_db),
+):
     """Human auditor overrides a held order and resumes fulfillment through pricing and dispatch."""
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
@@ -200,4 +263,46 @@ def override_held_order(order_id: str, auditor_notes: str = "Auditor manual veri
     orchestrator.dispatch_coordinator.coordinate_dispatch(order_state, db)
     orchestrator._finalize_dispatched_order(order_state, db, order)
 
+    # Broadcast update
+    background_tasks.add_task(
+        broadcast_order_event,
+        "ORDER_OVERRIDDEN",
+        {"order_id": order.id, "status": "DISPATCHED", "tracking_id": order_state.tracking_id},
+    )
+
     return {"message": "Order successfully released from hold and dispatched.", "order_state": order_state}
+
+
+@router.post("/{order_id}/reject")
+def reject_held_order(
+    order_id: str,
+    background_tasks: BackgroundTasks,
+    rejection_reason: str = "Rejected by compliance auditor due to fraudulent pattern",
+    db: Session = Depends(get_db),
+):
+    """Human auditor rejects a held order permanently, marks it CANCELLED, and releases any inventory."""
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    order.status = "REJECTED_FRAUD"
+    order.hold_reason = f"Auditor Rejection: {rejection_reason}"
+
+    # Release any reservations
+    InventoryService.release_reservations(db, order_id)
+
+    # Update fraud review decision
+    review = db.query(FraudReview).filter(FraudReview.order_id == order_id).first()
+    if review:
+        review.decision = "REJECTED_AUDITOR"
+
+    db.commit()
+
+    # Broadcast update
+    background_tasks.add_task(
+        broadcast_order_event,
+        "ORDER_REJECTED",
+        {"order_id": order.id, "status": "REJECTED_FRAUD", "reason": rejection_reason},
+    )
+
+    return {"message": f"Order {order_id} rejected and cancelled.", "status": "REJECTED_FRAUD"}

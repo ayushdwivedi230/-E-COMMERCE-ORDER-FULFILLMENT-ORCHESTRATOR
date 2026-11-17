@@ -29,6 +29,8 @@ class OrderSummaryResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     order_id: str
     customer_id: str
+    customer_name: Optional[str] = None
+    item_count: Optional[int] = 0
     status: str
     final_amount: Decimal
     fraud_score: float

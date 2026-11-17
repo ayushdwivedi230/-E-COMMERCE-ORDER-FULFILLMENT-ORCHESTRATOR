@@ -7,12 +7,13 @@ from backend.app.config import settings
 
 logger = logging.getLogger("ecommerce.database")
 
-db_url = settings.DATABASE_URL
+db_url = settings.effective_database_url
 
 # Handle SQLite vs PostgreSQL engine arguments and Windows paths
 connect_args = {}
 if db_url.startswith("sqlite"):
     connect_args["check_same_thread"] = False
+    connect_args["timeout"] = 15
     # Normalize Windows relative path to absolute URL
     if "./" in db_url or not os.path.isabs(db_url.replace("sqlite:///", "")):
         raw_path = db_url.replace("sqlite:///./", "").replace("sqlite:///", "")

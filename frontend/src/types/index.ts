@@ -127,3 +127,145 @@ export interface Product {
   category?: string;
   is_active: boolean;
 }
+
+export interface OrderSummary {
+  order_id: string;
+  customer_id: string;
+  customer_name?: string;
+  item_count?: number;
+  status: string;
+  final_amount: number;
+  fraud_score: number;
+  hold_reason?: string;
+  tracking_id?: string;
+  created_at: string;
+}
+
+export interface DashboardAnalytics {
+  total_orders: number;
+  completed_orders: number;
+  held_orders: number;
+  pending_orders: number;
+  total_revenue: number;
+  average_order_value: number;
+  fraud_stats: {
+    total_evaluated: number;
+    high_risk_count: number;
+    medium_risk_count: number;
+    low_risk_count: number;
+    average_fraud_score: number;
+    escalation_rate: number;
+  };
+  status_distribution: Array<{ name: string; value: number; color: string }>;
+  risk_distribution: Array<{ tier: string; count: number; color: string }>;
+  recent_activity: Array<{
+    id: string;
+    order_id: string;
+    agent_name: string;
+    action: string;
+    status: string;
+    message: string;
+    execution_time_ms: number;
+    timestamp: string;
+  }>;
+}
+
+export interface AgentTelemetryItem {
+  agent_name: string;
+  total_executions: number;
+  successful_executions: number;
+  held_or_warning_executions: number;
+  failed_executions: number;
+  average_latency_ms: number;
+  status: string;
+  recent_events: Array<{
+    order_id: string;
+    action: string;
+    status: string;
+    message: string;
+    execution_time_ms: number;
+    timestamp: string;
+  }>;
+}
+
+export interface AgentsTelemetryResponse {
+  framework: string;
+  version: string;
+  agents: AgentTelemetryItem[];
+}
+
+export interface FullOrderDetails {
+  order_id: string;
+  customer_id: string;
+  status: string;
+  shipping_address: string;
+  billing_address?: string;
+  payment_method: string;
+  subtotal: number;
+  discount_amount: number;
+  tax_amount: number;
+  shipping_cost: number;
+  total_amount: number;
+  fraud_score: number;
+  hold_reason?: string;
+  tracking_id?: string;
+  created_at: string;
+  items: Array<{
+    sku: string;
+    name: string;
+    quantity: number;
+    unit_price: number;
+    total_price: number;
+  }>;
+  agent_logs: Array<{
+    agent_name: string;
+    action: string;
+    status: string;
+    message: string;
+    details?: Record<string, any>;
+    execution_time_ms: number;
+    created_at: string;
+  }>;
+  shipment?: {
+    tracking_id: string;
+    carrier: string;
+    shipping_method: string;
+    status: string;
+    estimated_delivery?: string;
+    dispatch_notes?: string;
+  } | null;
+  fraud_reviews: Array<{
+    fraud_score: number;
+    risk_level: string;
+    reasons: string[];
+    ai_explanation?: string;
+    decision: string;
+  }>;
+}
+
+export interface HeldOrder {
+  order_id: string;
+  customer_id: string;
+  customer_name?: string;
+  customer_email?: string;
+  shipping_address?: string;
+  total_amount?: number;
+  status: string;
+  hold_reason?: string;
+  fraud_score: number;
+  created_at: string;
+  items?: Array<{
+    sku: string;
+    name: string;
+    quantity: number;
+    unit_price: number;
+    total_price: number;
+  }>;
+  fraud_reviews: Array<{
+    fraud_score: number;
+    risk_level: string;
+    reasons: string[];
+    ai_explanation?: string;
+    decision: string;
+  }>;
+}

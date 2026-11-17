@@ -33,6 +33,14 @@ class Order(Base):
     shipment = relationship("Shipment", back_populates="order", uselist=False, cascade="all, delete-orphan")
     agent_logs = relationship("AgentLog", back_populates="order", cascade="all, delete-orphan")
 
+    @property
+    def order_id(self) -> str:
+        return self.id
+
+    @property
+    def final_amount(self):
+        return self.total_amount
+
 
 class OrderItem(Base):
     __tablename__ = "order_items"

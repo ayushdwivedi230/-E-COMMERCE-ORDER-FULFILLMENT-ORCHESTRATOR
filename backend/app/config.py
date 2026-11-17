@@ -20,6 +20,16 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "sqlite:///./ecommerce.db"
     
+    @property
+    def effective_database_url(self) -> str:
+        # Check specific override first
+        if "ECOMMERCE_DATABASE_URL" in os.environ:
+            return os.environ["ECOMMERCE_DATABASE_URL"]
+        # Discard unrelated ambient system environment variables from other projects
+        if "SmartBookingSalon" in self.DATABASE_URL:
+            return "sqlite:///./ecommerce.db"
+        return self.DATABASE_URL
+    
     # CORS
     CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173"
 

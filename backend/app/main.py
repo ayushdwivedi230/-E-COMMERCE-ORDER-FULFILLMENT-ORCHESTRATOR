@@ -11,6 +11,8 @@ from backend.app.api.orders import router as orders_router
 from backend.app.api.products import router as products_router
 from backend.app.api.customers import router as customers_router
 from backend.app.api.agents import router as agents_router
+from backend.app.api.dashboard import router as dashboard_router
+from backend.app.api.websocket import router as websocket_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -58,6 +60,8 @@ app.include_router(orders_router)
 app.include_router(products_router)
 app.include_router(customers_router)
 app.include_router(agents_router)
+app.include_router(dashboard_router)
+app.include_router(websocket_router)
 
 
 @app.get("/health")
