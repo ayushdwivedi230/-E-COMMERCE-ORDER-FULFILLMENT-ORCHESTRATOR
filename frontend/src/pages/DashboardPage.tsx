@@ -174,7 +174,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             </div>
           </div>
           <div className="text-2xl font-black font-mono text-cyan-300">
-            ${data.total_revenue.toFixed(2)}
+            ${Number(data.total_revenue || 0).toFixed(2)}
           </div>
           <div className="text-[10px] text-slate-400 mt-1">
             Dispatched gross revenue
@@ -190,7 +190,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             </div>
           </div>
           <div className="text-2xl font-black font-mono text-violet-300">
-            ${data.average_order_value.toFixed(2)}
+            ${Number(data.average_order_value || 0).toFixed(2)}
           </div>
           <div className="text-[10px] text-slate-400 mt-1">
             Per fulfilled basket

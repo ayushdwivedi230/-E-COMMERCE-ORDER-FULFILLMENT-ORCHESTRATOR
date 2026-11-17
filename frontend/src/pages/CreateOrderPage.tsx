@@ -334,7 +334,7 @@ export const CreateOrderPage: React.FC<CreateOrderPageProps> = ({
                 >
                   {products.map((p) => (
                     <option key={p.sku} value={p.sku}>
-                      {p.sku} (${p.price.toFixed(2)}) — Stock: {p.stock_quantity}
+                      {p.sku} (${Number(p.price || 0).toFixed(2)}) — Stock: {p.stock_quantity}
                     </option>
                   ))}
                 </select>
@@ -362,7 +362,7 @@ export const CreateOrderPage: React.FC<CreateOrderPageProps> = ({
                 />
                 {selectedProduct && (
                   <div className="text-[10px] text-slate-400 mt-1 font-mono text-right">
-                    Sub: ${(selectedProduct.price * quantity).toFixed(2)}
+                    Sub: ${(Number(selectedProduct.price || 0) * quantity).toFixed(2)}
                   </div>
                 )}
               </div>
@@ -506,7 +506,7 @@ export const CreateOrderPage: React.FC<CreateOrderPageProps> = ({
                 <div className="text-right">
                   <span className="text-[10px] uppercase text-slate-400 block">Final Amount</span>
                   <span className="text-lg font-bold font-mono text-emerald-400">
-                    ${orderResult.final_amount.toFixed(2)}
+                    ${Number(orderResult.final_amount || 0).toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -535,7 +535,7 @@ export const CreateOrderPage: React.FC<CreateOrderPageProps> = ({
                     </div>
                     <div className="bg-slate-950/60 p-2 rounded border border-emerald-900/40">
                       <span className="text-[10px] font-sans text-slate-400 block">Final Payable</span>
-                      <span className="text-emerald-300 font-bold">${orderResult.final_amount.toFixed(2)}</span>
+                      <span className="text-emerald-300 font-bold">${Number(orderResult.final_amount || 0).toFixed(2)}</span>
                     </div>
                     <div className="bg-slate-950/60 p-2 rounded border border-emerald-900/40">
                       <span className="text-[10px] font-sans text-slate-400 block">Shipping Method</span>
@@ -590,19 +590,19 @@ export const CreateOrderPage: React.FC<CreateOrderPageProps> = ({
               <div className="grid grid-cols-4 gap-2 mb-4 bg-slate-950 p-3 rounded-lg border border-slate-800/80 text-xs font-mono">
                 <div>
                   <span className="text-[10px] text-slate-400 font-sans block">Subtotal</span>
-                  ${orderResult.subtotal.toFixed(2)}
+                  ${Number(orderResult.subtotal || 0).toFixed(2)}
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 font-sans block">Discounts</span>
-                  -${orderResult.discount_amount.toFixed(2)}
+                  -${Number(orderResult.discount_amount || 0).toFixed(2)}
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 font-sans block">Tax (8%)</span>
-                  +${orderResult.tax_amount.toFixed(2)}
+                  +${Number(orderResult.tax_amount || 0).toFixed(2)}
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 font-sans block">Shipping</span>
-                  +${orderResult.shipping_cost.toFixed(2)}
+                  +${Number(orderResult.shipping_cost || 0).toFixed(2)}
                 </div>
               </div>
 

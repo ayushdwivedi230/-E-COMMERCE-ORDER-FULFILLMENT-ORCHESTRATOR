@@ -154,7 +154,7 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({
             Final Payable Amount
           </span>
           <span className="text-xl font-black font-mono text-emerald-400">
-            ${orderDetails.total_amount.toFixed(2)}
+            ${Number(orderDetails.total_amount || 0).toFixed(2)}
           </span>
         </div>
       </div>
@@ -176,11 +176,11 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({
                   <div>
                     <div className="font-semibold text-slate-200">{item.name}</div>
                     <div className="text-[10px] font-mono text-slate-400">
-                      SKU: {item.sku} &bull; Qty: {item.quantity} &times; ${item.unit_price.toFixed(2)}
+                      SKU: {item.sku} &bull; Qty: {item.quantity} &times; ${Number(item.unit_price || 0).toFixed(2)}
                     </div>
                   </div>
                   <div className="font-mono font-bold text-slate-200">
-                    ${item.total_price.toFixed(2)}
+                    ${Number(item.total_price || 0).toFixed(2)}
                   </div>
                 </div>
               ))}
@@ -197,23 +197,23 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({
             <div className="space-y-2 text-xs font-mono">
               <div className="flex justify-between text-slate-300">
                 <span className="font-sans text-slate-400">Subtotal</span>
-                <span>${orderDetails.subtotal.toFixed(2)}</span>
+                <span>${Number(orderDetails.subtotal || 0).toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-emerald-400">
                 <span className="font-sans text-slate-400">Discounts Applied</span>
-                <span>-${orderDetails.discount_amount.toFixed(2)}</span>
+                <span>-${Number(orderDetails.discount_amount || 0).toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-slate-300">
                 <span className="font-sans text-slate-400">Sales Tax (8%)</span>
-                <span>+${orderDetails.tax_amount.toFixed(2)}</span>
+                <span>+${Number(orderDetails.tax_amount || 0).toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-slate-300">
                 <span className="font-sans text-slate-400">Shipping Charges</span>
-                <span>+${orderDetails.shipping_cost.toFixed(2)}</span>
+                <span>+${Number(orderDetails.shipping_cost || 0).toFixed(2)}</span>
               </div>
               <div className="border-t border-slate-800 pt-2 flex justify-between text-sm font-bold text-slate-100">
                 <span className="font-sans">Total Payable</span>
-                <span className="text-emerald-400">${orderDetails.total_amount.toFixed(2)}</span>
+                <span className="text-emerald-400">${Number(orderDetails.total_amount || 0).toFixed(2)}</span>
               </div>
             </div>
           </div>
@@ -395,18 +395,32 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({
                     <span className="font-bold text-amber-400">{rev.decision}</span>
                   </div>
 
-                  {rev.reasons && rev.reasons.length > 0 && (
-                    <div className="pt-1">
-                      <span className="text-[10px] text-slate-400 uppercase tracking-wider block mb-1">
-                        Trigger Reasons:
-                      </span>
-                      <ul className="list-disc pl-4 text-rose-300 space-y-0.5 text-[11px]">
-                        {rev.reasons.map((r, i) => (
-                          <li key={i}>{r}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  {(() => {
+                    const parsed = Array.isArray(rev.reasons)
+                      ? rev.reasons
+                      : typeof rev.reasons === "string"
+                      ? (() => {
+                          try {
+                            const p = JSON.parse(rev.reasons);
+                            return Array.isArray(p) ? p : [rev.reasons];
+                          } catch {
+                            return [rev.reasons];
+                          }
+                        })()
+                      : [];
+                    return parsed.length > 0 && parsed[0] !== "None" ? (
+                      <div className="pt-1">
+                        <span className="text-[10px] text-slate-400 uppercase tracking-wider block mb-1">
+                          Trigger Reasons:
+                        </span>
+                        <ul className="list-disc pl-4 text-rose-300 space-y-0.5 text-[11px]">
+                          {parsed.map((r, i) => (
+                            <li key={i}>{r}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null;
+                  })()}
 
                   {rev.ai_explanation && (
                     <div className="p-2.5 rounded bg-slate-950 border border-slate-800 text-[11px] text-slate-300">

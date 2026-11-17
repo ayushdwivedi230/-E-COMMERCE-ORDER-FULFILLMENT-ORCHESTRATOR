@@ -41,86 +41,106 @@ class OrderFulfillmentOrchestrator:
     ) -> OrderState:
         """
         Execute the complete multi-agent pipeline over the shared OrderState.
+        Includes top-level transaction safety and rollback on system exceptions.
         """
-        # Step 0: Ensure Order record exists in DB in PENDING status, and guard against duplicate processing
-        db_order = self._initialize_order_record(order_state, db)
-        if db_order is None:
-            # Duplicate order detected and blocked
-            return order_state
+        try:
+            # Step 0: Ensure Order record exists in DB in PENDING status, and guard against duplicate processing
+            db_order = self._initialize_order_record(order_state, db)
+            if db_order is None:
+                # Duplicate order detected and blocked
+                return order_state
 
-        # STAGE 1: Validation Agent (Must stop processing if invalid or payment failed)
-        valid = self.validation_agent.validate_order(order_state, db)
-        if not valid:
-            self._route_to_hold(
+            # STAGE 1: Validation Agent (Must stop processing if invalid or payment failed)
+            valid = self.validation_agent.validate_order(order_state, db)
+            if not valid:
+                self._route_to_hold(
+                    order_state=order_state,
+                    db=db,
+                    db_order=db_order,
+                    reason=order_state.hold_reason or "Order failed structural validation or payment check.",
+                    stage="VALIDATION_FAILED",
+                )
+                return order_state
+
+            # STAGE 2: Inventory Agent (Atomic stock verification & reservation)
+            inventory_ok = self.inventory_agent.process_inventory(order_state, db)
+            if not inventory_ok:
+                self._route_to_hold(
+                    order_state=order_state,
+                    db=db,
+                    db_order=db_order,
+                    reason=order_state.hold_reason or "Inventory reservation incomplete.",
+                    stage="INVENTORY_HELD",
+                )
+                return order_state
+
+            # STAGE 3: Fraud Check Agent (Deterministic risk scoring & Customer Memory)
+            fraud_cleared = self.fraud_agent.evaluate_fraud(
                 order_state=order_state,
                 db=db,
-                db_order=db_order,
-                reason=order_state.hold_reason or "Order failed structural validation or payment check.",
-                stage="VALIDATION_FAILED",
+                simulated_failed_attempts=simulated_failed_attempts,
             )
+
+            # FRAUD ESCALATION ROUTE BRANCHING
+            if not fraud_cleared or order_state.fraud_score >= 70:
+                # Release temporarily held inventory back to available stock
+                InventoryService.release_reservations(db, order_state.order_id)
+                self._route_to_hold(
+                    order_state=order_state,
+                    db=db,
+                    db_order=db_order,
+                    reason=order_state.hold_reason or f"Fraud Risk Escalation: Score {order_state.fraud_score} >= 70.",
+                    stage="FRAUD_HELD",
+                )
+                return order_state
+
+            # STAGE 4: Pricing Agent (Deterministic decimal arithmetic)
+            pricing_ok = self.pricing_agent.calculate_pricing(order_state, db)
+            if not pricing_ok:
+                InventoryService.release_reservations(db, order_state.order_id)
+                self._route_to_hold(
+                    order_state=order_state,
+                    db=db,
+                    db_order=db_order,
+                    reason="Pricing calculation could not be completed.",
+                    stage="PRICING_FAILED",
+                )
+                return order_state
+
+            # STAGE 5: Dispatch Coordinator (Tracking, carrier selection, courier simulation)
+            dispatch_ok = self.dispatch_coordinator.coordinate_dispatch(order_state, db)
+            if not dispatch_ok:
+                InventoryService.release_reservations(db, order_state.order_id)
+                self._route_to_hold(
+                    order_state=order_state,
+                    db=db,
+                    db_order=db_order,
+                    reason=order_state.hold_reason or "Dispatch coordination failed.",
+                    stage="DISPATCH_FAILED",
+                )
+                return order_state
+
+            # SUCCESSFUL FULFILLMENT: Finalize DB Order & Record to History Memory
+            self._finalize_dispatched_order(order_state, db, db_order)
             return order_state
 
-        # STAGE 2: Inventory Agent (Atomic stock verification & reservation)
-        inventory_ok = self.inventory_agent.process_inventory(order_state, db)
-        if not inventory_ok:
-            self._route_to_hold(
-                order_state=order_state,
-                db=db,
-                db_order=db_order,
-                reason=order_state.hold_reason or "Inventory reservation incomplete.",
-                stage="INVENTORY_HELD",
+        except Exception as exc:
+            db.rollback()
+            try:
+                InventoryService.release_reservations(db, order_state.order_id)
+            except Exception:
+                pass
+            order_state.dispatch_status = "FAILED"
+            order_state.hold_reason = f"System Error / Database Exception: {str(exc)}"
+            order_state.add_log(
+                agent_name="OrderOrchestrator",
+                action="PipelineExecutionRecovery",
+                status="FAILED",
+                message=f"Pipeline aborted due to unexpected error: {str(exc)}",
+                execution_time_ms=0,
+                details={"exception": str(exc)},
             )
             return order_state
-
-        # STAGE 3: Fraud Check Agent (Deterministic risk scoring & Customer Memory)
-        fraud_cleared = self.fraud_agent.evaluate_fraud(
-            order_state=order_state,
-            db=db,
-            simulated_failed_attempts=simulated_failed_attempts,
-        )
-
-        # FRAUD ESCALATION ROUTE BRANCHING
-        if not fraud_cleared or order_state.fraud_score >= 70:
-            # Release temporarily held inventory back to available stock
-            InventoryService.release_reservations(db, order_state.order_id)
-            self._route_to_hold(
-                order_state=order_state,
-                db=db,
-                db_order=db_order,
-                reason=order_state.hold_reason or f"Fraud Risk Escalation: Score {order_state.fraud_score} >= 70.",
-                stage="FRAUD_HELD",
-            )
-            return order_state
-
-        # STAGE 4: Pricing Agent (Deterministic decimal arithmetic)
-        pricing_ok = self.pricing_agent.calculate_pricing(order_state, db)
-        if not pricing_ok:
-            InventoryService.release_reservations(db, order_state.order_id)
-            self._route_to_hold(
-                order_state=order_state,
-                db=db,
-                db_order=db_order,
-                reason="Pricing calculation could not be completed.",
-                stage="PRICING_FAILED",
-            )
-            return order_state
-
-        # STAGE 5: Dispatch Coordinator (Tracking, carrier selection, courier simulation)
-        dispatch_ok = self.dispatch_coordinator.coordinate_dispatch(order_state, db)
-        if not dispatch_ok:
-            InventoryService.release_reservations(db, order_state.order_id)
-            self._route_to_hold(
-                order_state=order_state,
-                db=db,
-                db_order=db_order,
-                reason="Dispatch coordination failed.",
-                stage="DISPATCH_FAILED",
-            )
-            return order_state
-
-        # SUCCESSFUL FULFILLMENT: Finalize DB Order & Record to History Memory
-        self._finalize_dispatched_order(order_state, db, db_order)
-        return order_state
 
     def _initialize_order_record(self, order_state: OrderState, db: Session) -> Optional[Order]:
         """Create or update database Order row with duplicate processing prevention."""

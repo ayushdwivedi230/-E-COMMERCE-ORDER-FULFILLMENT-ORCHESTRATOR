@@ -106,6 +106,21 @@ export const FraudReviewPage: React.FC<FraudReviewPageProps> = ({
 
   const activeReview = selectedOrder?.fraud_reviews?.[0];
 
+  const parsedReasons: string[] = (() => {
+    if (!activeReview?.reasons) return [];
+    if (Array.isArray(activeReview.reasons)) return activeReview.reasons;
+    if (typeof activeReview.reasons === "string") {
+      try {
+        const parsed = JSON.parse(activeReview.reasons);
+        if (Array.isArray(parsed)) return parsed;
+      } catch {
+        // fallback to string value
+      }
+      return [activeReview.reasons];
+    }
+    return [];
+  })();
+
   return (
     <div className="space-y-6">
       {/* Alert Message Banner */}
@@ -265,7 +280,7 @@ export const FraudReviewPage: React.FC<FraudReviewPageProps> = ({
                     Cart Value at Risk
                   </span>
                   <div className="text-2xl font-black font-mono text-emerald-400">
-                    ${(selectedOrder.total_amount || 0).toFixed(2)}
+                    ${Number(selectedOrder.total_amount || 0).toFixed(2)}
                   </div>
                   <span className="text-[11px] text-slate-400 mt-1">
                     Items reserved pending compliance decision
@@ -279,9 +294,9 @@ export const FraudReviewPage: React.FC<FraudReviewPageProps> = ({
                   <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
                   Deterministic Risk Factors Detected
                 </h4>
-                {activeReview?.reasons && activeReview.reasons.length > 0 ? (
+                {parsedReasons.length > 0 ? (
                   <ul className="space-y-1.5">
-                    {activeReview.reasons.map((reason, idx) => (
+                    {parsedReasons.map((reason, idx) => (
                       <li
                         key={idx}
                         className="p-2.5 rounded bg-rose-950/40 border border-rose-900/60 text-xs text-rose-200 flex items-start gap-2"
@@ -334,7 +349,7 @@ export const FraudReviewPage: React.FC<FraudReviewPageProps> = ({
                     </div>
                     <div className="bg-slate-900 p-2 rounded border border-slate-800">
                       <span className="text-[10px] text-slate-400 block font-sans">Historical Spend</span>
-                      <span className="font-bold text-slate-200">${customerStats.total_spent.toFixed(2)}</span>
+                      <span className="font-bold text-slate-200">${Number(customerStats.total_spent || 0).toFixed(2)}</span>
                     </div>
                     <div className="bg-slate-900 p-2 rounded border border-slate-800">
                       <span className="text-[10px] text-slate-400 block font-sans">Suspicion Rate</span>

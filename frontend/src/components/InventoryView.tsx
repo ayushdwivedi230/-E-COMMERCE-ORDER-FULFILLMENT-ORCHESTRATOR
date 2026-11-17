@@ -59,7 +59,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
               <div className="mt-4 pt-3 border-t border-slate-800/80">
                 <div className="flex items-center justify-between text-xs mb-2">
                   <span className="text-slate-400">Unit Price:</span>
-                  <span className="font-mono font-bold text-slate-200">${p.price.toFixed(2)}</span>
+                  <span className="font-mono font-bold text-slate-200">${Number(p.price || 0).toFixed(2)}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs mb-2">
                   <span className="text-slate-400">Available Stock:</span>

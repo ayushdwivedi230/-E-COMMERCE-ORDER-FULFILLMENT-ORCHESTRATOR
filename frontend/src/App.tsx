@@ -12,11 +12,71 @@ import { OrderDetailsPage } from "./pages/OrderDetailsPage";
 import { useOrderWebSocket } from "./hooks/useOrderWebSocket";
 import { fetchHeldOrders } from "./api";
 
+function getInitialRoute(): { page: NavPage; orderId: string | null } {
+  if (typeof window === "undefined") return { page: "dashboard", orderId: null };
+  const params = new URLSearchParams(window.location.search);
+  const queryPage = params.get("page") as NavPage | null;
+  const queryId = params.get("id");
+  if (queryPage && ["dashboard", "create-order", "orders", "agents", "fraud-review", "order-details"].includes(queryPage)) {
+    return { page: queryPage, orderId: queryId };
+  }
+  const hash = window.location.hash.replace("#/", "").replace("#", "");
+  if (hash.startsWith("order-details")) {
+    const queryIdx = hash.indexOf("?id=");
+    const id = queryIdx !== -1 ? hash.substring(queryIdx + 4) : null;
+    return { page: "order-details", orderId: id };
+  }
+  if (["dashboard", "create-order", "orders", "agents", "fraud-review", "order-details"].includes(hash)) {
+    return { page: hash as NavPage, orderId: null };
+  }
+  return { page: "dashboard", orderId: null };
+}
+
 export function AppContent() {
-  const [currentPage, setCurrentPage] = useState<NavPage>("dashboard");
-  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const initial = getInitialRoute();
+  const [currentPage, setCurrentPage] = useState<NavPage>(initial.page);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(initial.orderId);
   const [heldOrdersCount, setHeldOrdersCount] = useState<number>(0);
   const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
+
+  // Route listener for deep-linking (supporting both query params and hash routes)
+  useEffect(() => {
+    const syncRoute = () => {
+      // Check query parameters first (?page=...&id=...)
+      const params = new URLSearchParams(window.location.search);
+      const queryPage = params.get("page");
+      const queryId = params.get("id");
+      if (queryId) {
+        setSelectedOrderId(queryId);
+      }
+      if (queryPage && ["dashboard", "create-order", "orders", "agents", "fraud-review", "order-details"].includes(queryPage)) {
+        setCurrentPage(queryPage as NavPage);
+        return;
+      }
+
+      // Check hash route fallback (#/page or #page)
+      const hash = window.location.hash.replace("#/", "").replace("#", "");
+      if (hash.startsWith("order-details")) {
+        setCurrentPage("order-details");
+        const queryIdx = hash.indexOf("?id=");
+        if (queryIdx !== -1) {
+          const id = hash.substring(queryIdx + 4);
+          if (id) setSelectedOrderId(id);
+        }
+      } else if (
+        ["dashboard", "create-order", "orders", "agents", "fraud-review", "order-details"].includes(hash)
+      ) {
+        setCurrentPage(hash as NavPage);
+      }
+    };
+    syncRoute();
+    window.addEventListener("hashchange", syncRoute);
+    window.addEventListener("popstate", syncRoute);
+    return () => {
+      window.removeEventListener("hashchange", syncRoute);
+      window.removeEventListener("popstate", syncRoute);
+    };
+  }, []);
 
   // Poll / update held orders count for sidebar badge
   const updateHeldCount = useCallback(async () => {
@@ -41,9 +101,15 @@ export function AppContent() {
     }, [updateHeldCount])
   );
 
+  const handleNavigate = (page: NavPage) => {
+    setCurrentPage(page);
+    window.location.hash = `#/${page}`;
+  };
+
   const handleViewOrder = (orderId: string) => {
     setSelectedOrderId(orderId);
     setCurrentPage("order-details");
+    window.location.hash = `#/order-details?id=${orderId}`;
   };
 
   return (
@@ -51,7 +117,7 @@ export function AppContent() {
       {/* Modern Enterprise Sidebar Navigation */}
       <Sidebar
         currentPage={currentPage}
-        onNavigate={(page) => setCurrentPage(page)}
+        onNavigate={handleNavigate}
         heldCount={heldOrdersCount}
         isConnected={isConnected}
       />
@@ -61,7 +127,7 @@ export function AppContent() {
         {/* Sticky Top Header */}
         <Header
           currentPage={currentPage}
-          onNavigate={(page) => setCurrentPage(page)}
+          onNavigate={handleNavigate}
           onDataRefresh={() => {
             updateHeldCount();
             setRefreshTrigger((prev) => prev + 1);

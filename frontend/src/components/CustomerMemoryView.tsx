@@ -117,7 +117,7 @@ export const CustomerMemoryView: React.FC<CustomerMemoryViewProps> = ({
               <div className="bg-slate-900 border border-slate-800 rounded p-2.5">
                 <span className="text-[10px] text-slate-400 uppercase">Avg Order Value</span>
                 <div className="text-base font-bold text-indigo-300 mt-0.5">
-                  ${selectedCustomer.history_stats.average_order_value.toFixed(2)}
+                  ${Number(selectedCustomer.history_stats.average_order_value || 0).toFixed(2)}
                 </div>
               </div>
             </div>
@@ -163,7 +163,7 @@ export const CustomerMemoryView: React.FC<CustomerMemoryViewProps> = ({
                               {order.status}
                             </span>
                           </td>
-                          <td className="py-2 px-3 text-slate-300">${order.amount.toFixed(2)}</td>
+                          <td className="py-2 px-3 text-slate-300">${Number(order.amount || 0).toFixed(2)}</td>
                           <td className="py-2 px-3">
                             {order.is_suspicious ? (
                               <span className="text-rose-400 font-bold">YES</span>
