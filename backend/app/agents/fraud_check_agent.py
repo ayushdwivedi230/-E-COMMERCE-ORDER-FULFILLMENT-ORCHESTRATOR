@@ -68,14 +68,17 @@ class FraudCheckAgent(BaseOrchestratorAgent):
             risk_tier = "LOW"
             decision = "APPROVED"
             order_state.fraud_status = "LOW_RISK"
+            order_state.review_status = "APPROVED"
         elif score <= settings.FRAUD_MEDIUM_THRESHOLD:
             risk_tier = "MEDIUM"
             decision = "FLAGGED"
             order_state.fraud_status = "MEDIUM_RISK"
+            order_state.review_status = "FLAGGED_REVIEW"
         else:
             risk_tier = "HIGH"
             decision = "HELD"
             order_state.fraud_status = "HIGH_RISK_HELD"
+            order_state.review_status = "HELD_ESCALATED"
             order_state.hold_reason = (
                 f"Fraud Escalation Hold: Risk score of {score}/100 exceeds critical threshold ({settings.FRAUD_HIGH_THRESHOLD}). "
                 f"Triggers: {'; '.join(risk_factors)}"

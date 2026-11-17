@@ -95,6 +95,7 @@ class OrderState(BaseModel):
     tracking_id: Optional[str] = None
     carrier: Optional[str] = None
     shipping_method: Optional[str] = "Standard"
+    review_status: str = "PENDING"  # PENDING, APPROVED, FLAGGED_REVIEW, HELD_ESCALATED
 
     # Contextual recommendations & AI reasoning
     substitute_recommendations: List[SubstituteRecommendation] = []
@@ -104,6 +105,38 @@ class OrderState(BaseModel):
 
     # Shared Audit Execution Logs
     agent_execution_logs: List[AgentLogEntry] = []
+
+    @property
+    def is_successful(self) -> bool:
+        return self.dispatch_status == "DISPATCHED" and self.tracking_id is not None
+
+    def get_structured_output(self) -> Dict[str, Any]:
+        """
+        Required output format from Prompt 4:
+        - For successful orders: Confirmed order + final amount + shipping method + tracking ID.
+        - For suspicious orders: Held order + fraud score + explanation + review status.
+        """
+        if self.is_successful:
+            return {
+                "order_result": "CONFIRMED_AND_DISPATCHED",
+                "order_id": self.order_id,
+                "final_amount": str(self.final_amount),
+                "shipping_method": self.shipping_method,
+                "carrier": self.carrier,
+                "tracking_id": self.tracking_id,
+                "review_status": self.review_status,
+                "status": self.dispatch_status,
+            }
+        else:
+            return {
+                "order_result": "HELD_SUSPICIOUS_ORDER" if self.fraud_status == "HIGH_RISK_HELD" else "HELD_ORDER",
+                "order_id": self.order_id,
+                "fraud_score": self.fraud_score,
+                "explanation": self.fraud_ai_reasoning or self.hold_reason or "Order processing halted.",
+                "review_status": self.review_status,
+                "hold_reason": self.hold_reason,
+                "status": self.dispatch_status,
+            }
 
     def add_log(
         self,

@@ -74,6 +74,7 @@ export interface OrderState {
   tracking_id?: string;
   carrier?: string;
   shipping_method?: string;
+  review_status?: string;
   substitute_recommendations: SubstituteRecommendation[];
   backorder_proposals: BackorderProposal[];
   fraud_risk_factors: string[];

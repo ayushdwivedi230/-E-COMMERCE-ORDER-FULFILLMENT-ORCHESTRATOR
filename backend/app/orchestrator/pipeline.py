@@ -42,17 +42,20 @@ class OrderFulfillmentOrchestrator:
         """
         Execute the complete multi-agent pipeline over the shared OrderState.
         """
-        # Step 0: Ensure Order record exists in DB in PENDING status
+        # Step 0: Ensure Order record exists in DB in PENDING status, and guard against duplicate processing
         db_order = self._initialize_order_record(order_state, db)
+        if db_order is None:
+            # Duplicate order detected and blocked
+            return order_state
 
-        # STAGE 1: Validation Agent
+        # STAGE 1: Validation Agent (Must stop processing if invalid or payment failed)
         valid = self.validation_agent.validate_order(order_state, db)
         if not valid:
             self._route_to_hold(
                 order_state=order_state,
                 db=db,
                 db_order=db_order,
-                reason=order_state.hold_reason or "Order failed structural validation.",
+                reason=order_state.hold_reason or "Order failed structural validation or payment check.",
                 stage="VALIDATION_FAILED",
             )
             return order_state
@@ -119,10 +122,25 @@ class OrderFulfillmentOrchestrator:
         self._finalize_dispatched_order(order_state, db, db_order)
         return order_state
 
-    def _initialize_order_record(self, order_state: OrderState, db: Session) -> Order:
-        """Create or update database Order row."""
+    def _initialize_order_record(self, order_state: OrderState, db: Session) -> Optional[Order]:
+        """Create or update database Order row with duplicate processing prevention."""
         existing_order = db.query(Order).filter(Order.id == order_state.order_id).first()
         if existing_order:
+            if existing_order.status in ["DISPATCHED", "HELD", "PROCESSING"]:
+                order_state.dispatch_status = "REJECTED_DUPLICATE"
+                order_state.hold_reason = (
+                    f"Duplicate Order Error: Order '{order_state.order_id}' has already been processed "
+                    f"(Current status: {existing_order.status}). Duplicate execution aborted."
+                )
+                order_state.add_log(
+                    agent_name="OrderOrchestrator",
+                    action="DuplicateOrderPrevention",
+                    status="FAILED",
+                    message=f"Duplicate order submission rejected for ID '{order_state.order_id}'.",
+                    execution_time_ms=0,
+                    details={"existing_status": existing_order.status},
+                )
+                return None
             return existing_order
 
         db_order = Order(
@@ -168,7 +186,8 @@ class OrderFulfillmentOrchestrator:
         reason: str,
         stage: str,
     ) -> None:
-        """Route order to the Hold Queue and persist execution logs."""
+        """Route order to the Hold Queue, release any reserved stock, and persist execution logs."""
+        InventoryService.release_reservations(db, order_state.order_id)
         order_state.dispatch_status = "HELD"
         order_state.hold_reason = reason
         db_order.status = "HELD"
