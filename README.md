@@ -173,7 +173,45 @@ ecommerce/
 
 ---
 
-## 5. Installation and Setup Instructions
+## 5. Enterprise React SaaS Dashboard (Prompt 5)
+
+A modern enterprise SaaS admin dashboard built with **React 19**, **TypeScript**, **Tailwind CSS v4**, and **Recharts**, communicating live backend state via REST and WebSockets (`/ws/orders`).
+
+### 6 Core Operational Pages:
+1. **Dashboard (`DashboardPage.tsx`)**:
+   - Executive KPI cards: Total Orders, Completed, Held Orders, Pending, Revenue, and Average Order Value.
+   - Interactive Recharts Donut Chart for Order Status Distribution.
+   - Recharts Bar Chart for Automated Fraud Risk Classification (Low, Medium, High).
+   - Real-time Multi-Agent Activity Stream with instant navigation to order audit records.
+2. **Create Order (`CreateOrderPage.tsx`)**:
+   - Interactive order configuration form with customer memory preview, catalog stock availability, and coupon input.
+   - 6 Quick-Demonstration Buttons executing all Prompt 4 required test cases.
+   - Real-time 5-Agent Stepper with per-agent execution duration (ms) and status feedback.
+   - Instant output breakdown for confirmed shipments vs. held escalation audits.
+3. **Order Management (`OrderManagementPage.tsx`)**:
+   - Enterprise data table listing all orders from the database.
+   - Live debounced search across Order ID, Customer Name/ID, and Tracking ID.
+   - Status filter tabs: `ALL`, `DISPATCHED`, `HELD`, `PROCESSING`, `REJECTED`.
+   - Direct click-through to deep order fulfillment ledgers.
+4. **Agent Monitoring (`AgentMonitoringPage.tsx`)**:
+   - Displays all 5 Microsoft Agent Framework agents: Validation Agent, Inventory Agent, Fraud Check Agent, Pricing Agent, Dispatch Coordinator.
+   - Telemetry metrics per agent: Total executions, success count, held/warnings, average latency (ms), and operational status.
+   - Expandable execution history stream directly from database `agent_logs`.
+5. **Fraud Review (`FraudReviewPage.tsx`)**:
+   - Live held escalation queue with risk classification badges.
+   - Calculated fraud score gauge (0–100) and detection reason factor audit.
+   - Contextual AI reasoning explanations for compliance justification.
+   - Isolated customer prior-order dispute and chargeback memory.
+   - **Auditor Controls**: **Approve** (resumes pipeline, calculates pricing, dispatches with tracking) and **Reject** (cancels order, releases inventory reservation).
+6. **Order Details (`OrderDetailsPage.tsx`)**:
+   - Deep inspection ledger with full line-item inventory reservations.
+   - Deterministic financial pricing ledger (subtotal, volume discounts, coupon, tax, shipping).
+   - Chronological agent execution timeline stepper with latencies and message snapshots.
+   - Courier dispatch logistics tracker with carrier checkpoints and tracking ID.
+
+---
+
+## 6. Installation and Setup Instructions
 
 ### Prerequisites
 - Python 3.10+ (tested on Python 3.12.10)
@@ -216,14 +254,14 @@ DATABASE_URL=postgresql+psycopg2://postgres:postgrespassword@localhost:5432/ecom
 ```
 
 ### Step 3: Run Automated Backend Tests
-Verify all 20 unit and integration tests:
+Verify all 29 unit and integration tests (100% pass):
 ```bash
 python -m pytest backend/tests
 ```
 
 ### Step 4: Start the Backend Server
 ```bash
-python -m uvicorn backend.app.main:app --reload --port 8000
+python -m uvicorn backend.app.main:app --port 8000
 ```
 - API Documentation (Swagger UI): [http://localhost:8000/docs](http://localhost:8000/docs)
 - Health Check: [http://localhost:8000/health](http://localhost:8000/health)
@@ -239,11 +277,13 @@ Open your browser at [http://localhost:5173](http://localhost:5173).
 
 ---
 
-## 6. Pre-Configured Test Scenarios
+## 7. Pre-Configured Test Scenarios
 
-The interactive dashboard provides quick-load buttons for testing key orchestrator pathways:
+The interactive dashboard provides quick-load buttons in the **Create Order** page for demonstrating key orchestrator pathways:
 
-1. **Scenario A (Clean Dispatch)**: Verified customer (`CUST-001`), in-stock mechanical keyboard, coupon `WELCOME10`. All 5 agents pass; tracking ID generated (`TRK-FDX-...`).
-2. **Scenario B (Fraud Escalation Hold)**: High-risk customer (`CUST-003`) with 2 prior chargebacks, 2 failed payment retries, and shipping/billing address mismatch. Fraud risk score >= 70 triggers immediate escalation to the Fraud Hold Queue.
-3. **Scenario C (Out of Stock / Substitute)**: Item `MON-CRV-32` has 0 stock. Inventory Agent proposes active substitute `MON-4K-27` and backorder estimate, holding the order for customer confirmation.
-4. **Scenario D (Bulk Volume Discount)**: Order with 6 units of `HUB-USBC-8P` triggers the deterministic 5% bulk volume discount rule plus coupon `SAVE20`.
+1. **Scenario 1 (Successful Order)**: Verified customer (`CUST-001`), in-stock mechanical keyboard, coupon `WELCOME10`. All 5 agents pass; tracking ID generated (`TRK-FDX-...`).
+2. **Scenario 2 (Invalid Order)**: Non-existent product SKU or missing shipping address. Pipeline halts immediately at Validation Agent.
+3. **Scenario 3 (High-Risk Fraud)**: Customer (`CUST-003`) with prior chargebacks, 2 failed payment retries, and shipping/billing mismatch. Risk score >= 70 routes order immediately to Fraud Hold Queue.
+4. **Scenario 4 (Insufficient Inventory)**: Item `MON-CRV-32` has 0 stock. Inventory Agent proposes active substitute `MON-4K-27` and backorder estimate, holding the order for customer confirmation.
+5. **Scenario 5 (Customer with Successful History)**: Customer (`CUST-001`) with clean transaction history receives low risk score (0-29).
+6. **Scenario 6 (Customer with Suspicious History)**: Customer (`CUST-002`) with past chargebacks receives medium risk score and is flagged for review.
