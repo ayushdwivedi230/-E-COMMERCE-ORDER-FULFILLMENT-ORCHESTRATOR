@@ -23,12 +23,16 @@ class Settings(BaseSettings):
     @property
     def effective_database_url(self) -> str:
         # Check specific override first
+        url = self.DATABASE_URL
         if "ECOMMERCE_DATABASE_URL" in os.environ:
-            return os.environ["ECOMMERCE_DATABASE_URL"]
+            url = os.environ["ECOMMERCE_DATABASE_URL"]
         # Discard unrelated ambient system environment variables from other projects
-        if "SmartBookingSalon" in self.DATABASE_URL:
-            return "sqlite:///./ecommerce.db"
-        return self.DATABASE_URL
+        elif "SmartBookingSalon" in url:
+            url = "sqlite:///./ecommerce.db"
+        # Standardize PostgreSQL URI scheme for SQLAlchemy compatibility
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql://", 1)
+        return url
     
     # CORS
     CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173"

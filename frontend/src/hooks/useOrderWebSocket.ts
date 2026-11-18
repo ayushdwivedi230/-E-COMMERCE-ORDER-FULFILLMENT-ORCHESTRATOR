@@ -5,6 +5,18 @@ export interface WebSocketMessage {
   data: any;
 }
 
+function getWebSocketUrl(): string {
+  if (import.meta.env.VITE_WS_URL) {
+    return import.meta.env.VITE_WS_URL;
+  }
+  if (import.meta.env.VITE_API_URL) {
+    const wsProto = import.meta.env.VITE_API_URL.startsWith("https") ? "wss" : "ws";
+    const host = import.meta.env.VITE_API_URL.replace(/^https?:\/\//, "").replace(/\/$/, "");
+    return `${wsProto}://${host}/ws/orders`;
+  }
+  return "ws://localhost:8000/ws/orders";
+}
+
 export function useOrderWebSocket(onEvent?: (msg: WebSocketMessage) => void) {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [lastEvent, setLastEvent] = useState<WebSocketMessage | null>(null);
@@ -17,7 +29,7 @@ export function useOrderWebSocket(onEvent?: (msg: WebSocketMessage) => void) {
 
   const connect = useCallback(() => {
     try {
-      const ws = new WebSocket("ws://localhost:8000/ws/orders");
+      const ws = new WebSocket(getWebSocketUrl());
       wsRef.current = ws;
 
       ws.onopen = () => {
