@@ -133,63 +133,63 @@ export const AgentMonitoringPage: React.FC = () => {
               {/* Agent Summary Header */}
               <div
                 onClick={() => setExpandedAgent(isExpanded ? null : agent.agent_name)}
-                className="p-4 cursor-pointer flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900/90 hover:bg-slate-850 transition"
+                className="p-5 cursor-pointer flex flex-col md:flex-row items-start md:items-center justify-between gap-5 bg-slate-900/90 hover:bg-slate-800/80 transition"
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold">
-                    <Bot className="w-5 h-5" />
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold shadow-md">
+                    <Bot className="w-6 h-6" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-bold text-slate-100">{role.title}</h3>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <div className="flex items-center gap-2.5">
+                      <h3 className="text-base font-bold text-slate-100">{role.title}</h3>
+                      <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                         {agent.status}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400 mt-0.5">{role.subtitle}</p>
+                    <p className="text-sm text-slate-400 mt-1">{role.subtitle}</p>
                   </div>
                 </div>
 
                 {/* Telemetry Metrics */}
-                <div className="flex items-center gap-5 text-xs font-mono w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 border-slate-800 pt-2 md:pt-0">
+                <div className="flex items-center gap-6 text-sm font-mono w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 border-slate-800 pt-3 md:pt-0">
                   <div className="text-center md:text-right">
-                    <span className="text-[10px] text-slate-400 block font-sans">Total Invocations</span>
-                    <span className="font-bold text-slate-200">{agent.total_executions}</span>
+                    <span className="text-xs text-slate-400 block font-sans font-medium">Total Invocations</span>
+                    <span className="font-bold text-slate-100 text-base">{agent.total_executions}</span>
                   </div>
                   <div className="text-center md:text-right">
-                    <span className="text-[10px] text-slate-400 block font-sans">Success</span>
-                    <span className="font-bold text-emerald-400">{agent.successful_executions}</span>
+                    <span className="text-xs text-slate-400 block font-sans font-medium">Success</span>
+                    <span className="font-bold text-emerald-400 text-base">{agent.successful_executions}</span>
                   </div>
                   <div className="text-center md:text-right">
-                    <span className="text-[10px] text-slate-400 block font-sans">Held / Warning</span>
-                    <span className="font-bold text-amber-400">{agent.held_or_warning_executions}</span>
+                    <span className="text-xs text-slate-400 block font-sans font-medium">Held / Warning</span>
+                    <span className="font-bold text-amber-400 text-base">{agent.held_or_warning_executions}</span>
                   </div>
                   <div className="text-center md:text-right">
-                    <span className="text-[10px] text-slate-400 block font-sans">Avg Latency</span>
-                    <span className="font-bold text-indigo-300">{agent.average_latency_ms} ms</span>
+                    <span className="text-xs text-slate-400 block font-sans font-medium">Avg Latency</span>
+                    <span className="font-bold text-indigo-300 text-base">{agent.average_latency_ms} ms</span>
                   </div>
 
                   <div className="text-slate-400 hover:text-white pl-2">
-                    {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                   </div>
                 </div>
               </div>
 
               {/* Expandable Execution History & Logs */}
               {isExpanded && (
-                <div className="border-t border-slate-800 bg-slate-950/60 p-4">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
-                    <Layers className="w-3.5 h-3.5 text-indigo-400" />
+                <div className="border-t border-slate-800 bg-slate-950/60 p-5">
+                  <div className="text-xs font-bold uppercase tracking-wider text-slate-300 mb-3.5 flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-indigo-400" />
                     Recent Execution Events & Outputs (From Database `agent_logs`)
                   </div>
 
                   {agent.recent_events.length === 0 ? (
-                    <div className="text-xs text-slate-500 py-3 text-center">
+                    <div className="text-sm text-slate-500 py-4 text-center">
                       No executions logged for this agent yet.
                     </div>
                   ) : (
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {agent.recent_events.map((evt, idx) => {
                         const dateStr = evt.timestamp
                           ? new Date(evt.timestamp).toLocaleTimeString()
@@ -198,12 +198,12 @@ export const AgentMonitoringPage: React.FC = () => {
                         return (
                           <div
                             key={idx}
-                            className="bg-slate-900 border border-slate-800 rounded-lg p-3 text-xs font-mono space-y-1.5"
+                            className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-sm font-mono space-y-2 shadow-sm"
                           >
-                            <div className="flex items-center justify-between text-[11px]">
-                              <div className="flex items-center gap-2">
+                            <div className="flex items-center justify-between text-xs">
+                              <div className="flex items-center gap-2.5">
                                 <span
-                                  className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${
+                                  className={`px-2 py-0.5 rounded-full text-xs font-bold border ${
                                     evt.status === "SUCCESS"
                                       ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
                                       : evt.status === "HELD" || evt.status === "FAILED"
@@ -213,17 +213,17 @@ export const AgentMonitoringPage: React.FC = () => {
                                 >
                                   {evt.status}
                                 </span>
-                                <span className="font-semibold text-slate-200">{evt.action}</span>
-                                <span className="text-slate-500">Order: {evt.order_id}</span>
+                                <span className="font-bold text-slate-100">{evt.action}</span>
+                                <span className="text-slate-400 font-medium">Order: {evt.order_id}</span>
                               </div>
 
-                              <div className="flex items-center gap-3 text-slate-400 text-[10px]">
-                                <span>{evt.execution_time_ms} ms</span>
+                              <div className="flex items-center gap-4 text-slate-400 text-xs">
+                                <span className="font-semibold text-slate-300">{evt.execution_time_ms} ms</span>
                                 <span>{dateStr}</span>
                               </div>
                             </div>
 
-                            <div className="text-slate-300 font-sans text-xs bg-slate-950 p-2 rounded border border-slate-800/80">
+                            <div className="text-slate-200 font-sans text-sm bg-slate-950 p-3 rounded-lg border border-slate-800/80 leading-relaxed">
                               {evt.message}
                             </div>
                           </div>

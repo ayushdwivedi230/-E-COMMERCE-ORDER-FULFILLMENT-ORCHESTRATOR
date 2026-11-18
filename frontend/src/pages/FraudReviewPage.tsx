@@ -246,79 +246,79 @@ export const FraudReviewPage: React.FC<FraudReviewPageProps> = ({
               </div>
 
               {/* Fraud Score Gauge Card */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-950 p-4 rounded-xl border border-slate-800/80">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 bg-slate-950 p-5 rounded-2xl border border-slate-800/80">
                 {/* Score Gauge */}
                 <div className="text-center p-3 border-b md:border-b-0 md:border-r border-slate-800">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
                     Calculated Risk Score
                   </span>
-                  <div className="text-4xl font-black font-mono text-rose-400">
+                  <div className="text-5xl font-black font-mono text-rose-400">
                     {selectedOrder.fraud_score}
-                    <span className="text-xs font-normal text-slate-500"> / 100</span>
+                    <span className="text-sm font-normal text-slate-500"> / 100</span>
                   </div>
-                  <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono bg-rose-950 text-rose-400 border border-rose-800">
+                  <span className="inline-block mt-2.5 px-3 py-1 rounded-full text-xs font-bold font-mono bg-rose-950 text-rose-400 border border-rose-800">
                     HIGH RISK ESCALATION
                   </span>
                 </div>
 
                 {/* Risk Level & Policy */}
-                <div className="p-3 border-b md:border-b-0 md:border-r border-slate-800 flex flex-col justify-center text-xs">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                <div className="p-3 border-b md:border-b-0 md:border-r border-slate-800 flex flex-col justify-center text-sm">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
                     Risk Classification
                   </span>
-                  <div className="font-semibold text-slate-200">
+                  <div className="font-bold text-slate-100 text-base">
                     Tier: {activeReview?.risk_level || "HIGH"} (Score &ge; 70)
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-1">
+                  <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">
                     Orchestrator Policy: Pipeline immediately halted at Agent 3. Pricing and dispatch blocked.
                   </p>
                 </div>
 
                 {/* Financial Value at Risk */}
-                <div className="p-3 flex flex-col justify-center text-xs">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                <div className="p-3 flex flex-col justify-center text-sm">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
                     Cart Value at Risk
                   </span>
-                  <div className="text-2xl font-black font-mono text-emerald-400">
+                  <div className="text-3xl font-black font-mono text-emerald-400">
                     ${Number(selectedOrder.total_amount || 0).toFixed(2)}
                   </div>
-                  <span className="text-[11px] text-slate-400 mt-1">
+                  <span className="text-xs text-slate-400 mt-1.5">
                     Items reserved pending compliance decision
                   </span>
                 </div>
               </div>
 
               {/* Detection Trigger Reasons & AI Justification */}
-              <div className="space-y-3">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-                  <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+              <div className="space-y-3.5">
+                <h4 className="text-sm font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-400" />
                   Deterministic Risk Factors Detected
                 </h4>
                 {parsedReasons.length > 0 ? (
-                  <ul className="space-y-1.5">
+                  <ul className="space-y-2">
                     {parsedReasons.map((reason, idx) => (
                       <li
                         key={idx}
-                        className="p-2.5 rounded bg-rose-950/40 border border-rose-900/60 text-xs text-rose-200 flex items-start gap-2"
+                        className="p-3 rounded-xl bg-rose-950/40 border border-rose-900/60 text-sm text-rose-200 flex items-start gap-2.5"
                       >
-                        <span className="w-1.5 h-1.5 rounded-full bg-rose-400 mt-1.5 flex-shrink-0" />
+                        <span className="w-2 h-2 rounded-full bg-rose-400 mt-1.5 flex-shrink-0" />
                         <span>{reason}</span>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <div className="p-2.5 rounded bg-slate-950 border border-slate-800 text-xs text-slate-400">
+                  <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-sm text-slate-400">
                     {selectedOrder.hold_reason || "Escalated by rule threshold."}
                   </div>
                 )}
 
                 {/* AI Reasoning Text */}
                 {activeReview?.ai_explanation && (
-                  <div className="p-3 rounded-lg bg-slate-950 border border-indigo-900/40 text-xs space-y-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 block">
+                  <div className="p-4 rounded-xl bg-slate-950 border border-indigo-900/40 text-sm space-y-1.5">
+                    <span className="text-xs font-bold uppercase tracking-wider text-indigo-400 block">
                       Contextual AI Reasoning & Audit Trail
                     </span>
-                    <p className="text-slate-300 leading-relaxed font-sans">
+                    <p className="text-slate-200 leading-relaxed font-sans text-sm">
                       {activeReview.ai_explanation}
                     </p>
                   </div>

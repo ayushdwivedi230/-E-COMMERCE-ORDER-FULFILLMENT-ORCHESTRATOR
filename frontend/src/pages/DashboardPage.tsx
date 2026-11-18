@@ -86,113 +86,113 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   return (
     <div className="space-y-6">
       {/* KPI Metric Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-5">
         {/* Total Orders */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm hover:border-slate-700 transition">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Total Orders</span>
-            <div className="w-7 h-7 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
-              <ShoppingBag className="w-4 h-4" />
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm hover:border-slate-700 transition">
+          <div className="flex items-center justify-between text-slate-400 mb-2.5">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-300">Total Orders</span>
+            <div className="w-9 h-9 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+              <ShoppingBag className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-2xl font-black font-mono text-slate-100">
+          <div className="text-3xl font-black font-mono text-slate-100">
             {data.total_orders}
           </div>
-          <div className="text-[10px] text-slate-400 mt-1 flex items-center gap-1">
+          <div className="text-xs text-slate-400 mt-1.5 flex items-center gap-1 font-medium">
             <span>Throughput count</span>
           </div>
         </div>
 
         {/* Completed Orders */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm hover:border-slate-700 transition">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Completed</span>
-            <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
-              <CheckCircle2 className="w-4 h-4" />
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm hover:border-slate-700 transition">
+          <div className="flex items-center justify-between text-slate-400 mb-2.5">
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-300">Completed</span>
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+              <CheckCircle2 className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-2xl font-black font-mono text-emerald-400">
+          <div className="text-3xl font-black font-mono text-emerald-400">
             {data.completed_orders}
           </div>
-          <div className="text-[10px] text-slate-400 mt-1">
-            Dispatched & Tracking Generated
+          <div className="text-xs text-slate-400 mt-1.5 font-medium">
+            Dispatched & Tracking
           </div>
         </div>
 
         {/* Held Orders */}
         <div
           onClick={data.held_orders > 0 ? onNavigateToFraud : undefined}
-          className={`bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm transition ${
+          className={`bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm transition ${
             data.held_orders > 0
               ? "hover:border-rose-600/60 cursor-pointer group"
               : ""
           }`}
         >
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-rose-300">
+          <div className="flex items-center justify-between text-slate-400 mb-2.5">
+            <span className="text-xs font-bold uppercase tracking-wider text-rose-300">
               Held Orders
             </span>
-            <div className="w-7 h-7 rounded-lg bg-rose-500/10 flex items-center justify-center text-rose-400">
-              <ShieldAlert className="w-4 h-4" />
+            <div className="w-9 h-9 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-400">
+              <ShieldAlert className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-2xl font-black font-mono text-rose-400 flex items-center justify-between">
+          <div className="text-3xl font-black font-mono text-rose-400 flex items-center justify-between">
             <span>{data.held_orders}</span>
             {data.held_orders > 0 && (
-              <span className="text-[10px] font-sans font-medium text-rose-400 group-hover:underline flex items-center gap-0.5">
-                Review <ArrowUpRight className="w-3 h-3" />
+              <span className="text-xs font-sans font-semibold text-rose-400 group-hover:underline flex items-center gap-1">
+                Review <ArrowUpRight className="w-3.5 h-3.5" />
               </span>
             )}
           </div>
-          <div className="text-[10px] text-slate-400 mt-1">
+          <div className="text-xs text-slate-400 mt-1.5 font-medium">
             In Escalation Audit Queue
           </div>
         </div>
 
         {/* Pending Orders */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm hover:border-slate-700 transition">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Pending</span>
-            <div className="w-7 h-7 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400">
-              <Clock className="w-4 h-4" />
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm hover:border-slate-700 transition">
+          <div className="flex items-center justify-between text-slate-400 mb-2.5">
+            <span className="text-xs font-bold uppercase tracking-wider text-amber-300">Pending</span>
+            <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400">
+              <Clock className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-2xl font-black font-mono text-amber-400">
+          <div className="text-3xl font-black font-mono text-amber-400">
             {data.pending_orders}
           </div>
-          <div className="text-[10px] text-slate-400 mt-1">
-            In Validation / Reservation
+          <div className="text-xs text-slate-400 mt-1.5 font-medium">
+            In Validation / Pipeline
           </div>
         </div>
 
         {/* Total Revenue */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm hover:border-slate-700 transition">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Revenue</span>
-            <div className="w-7 h-7 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-400">
-              <DollarSign className="w-4 h-4" />
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm hover:border-slate-700 transition">
+          <div className="flex items-center justify-between text-slate-400 mb-2.5">
+            <span className="text-xs font-bold uppercase tracking-wider text-cyan-300">Revenue</span>
+            <div className="w-9 h-9 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400">
+              <DollarSign className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-2xl font-black font-mono text-cyan-300">
+          <div className="text-3xl font-black font-mono text-cyan-300">
             ${Number(data.total_revenue || 0).toFixed(2)}
           </div>
-          <div className="text-[10px] text-slate-400 mt-1">
+          <div className="text-xs text-slate-400 mt-1.5 font-medium">
             Dispatched gross revenue
           </div>
         </div>
 
         {/* Average Order Value */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm hover:border-slate-700 transition">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Avg Order</span>
-            <div className="w-7 h-7 rounded-lg bg-violet-500/10 flex items-center justify-center text-violet-400">
-              <TrendingUp className="w-4 h-4" />
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm hover:border-slate-700 transition">
+          <div className="flex items-center justify-between text-slate-400 mb-2.5">
+            <span className="text-xs font-bold uppercase tracking-wider text-violet-300">Avg Order</span>
+            <div className="w-9 h-9 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-400">
+              <TrendingUp className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-2xl font-black font-mono text-violet-300">
+          <div className="text-3xl font-black font-mono text-violet-300">
             ${Number(data.average_order_value || 0).toFixed(2)}
           </div>
-          <div className="text-[10px] text-slate-400 mt-1">
+          <div className="text-xs text-slate-400 mt-1.5 font-medium">
             Per fulfilled basket
           </div>
         </div>
@@ -201,44 +201,44 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       {/* Fraud Intelligence & Real Visual Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Fraud Summary Banner */}
-        <div className="lg:col-span-12 bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950/40 border border-slate-800 rounded-xl p-4 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400">
-                <ShieldAlert className="w-5 h-5" />
+        <div className="lg:col-span-12 bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950/40 border border-slate-800 rounded-2xl p-6 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-5">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 shadow-md">
+                <ShieldAlert className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+                <h3 className="text-base font-bold uppercase tracking-wider text-slate-100">
                   Automated Multi-Agent Fraud Analytics
                 </h3>
-                <p className="text-[11px] text-slate-400">
+                <p className="text-sm text-slate-400 mt-0.5">
                   Dual-tier deterministic rule engine + contextual AI reasoning
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-6 text-xs font-mono">
+            <div className="flex items-center gap-8 text-sm font-mono">
               <div>
-                <span className="text-[10px] text-slate-400 block font-sans">Total Evaluated</span>
-                <span className="text-sm font-bold text-slate-200">
+                <span className="text-xs text-slate-400 block font-sans font-medium">Total Evaluated</span>
+                <span className="text-base font-bold text-slate-100">
                   {data.fraud_stats.total_evaluated}
                 </span>
               </div>
-              <div className="border-l border-slate-800 pl-6">
-                <span className="text-[10px] text-slate-400 block font-sans">Avg Risk Score</span>
-                <span className="text-sm font-bold text-amber-400">
+              <div className="border-l border-slate-800 pl-8">
+                <span className="text-xs text-slate-400 block font-sans font-medium">Avg Risk Score</span>
+                <span className="text-base font-bold text-amber-400">
                   {data.fraud_stats.average_fraud_score} / 100
                 </span>
               </div>
-              <div className="border-l border-slate-800 pl-6">
-                <span className="text-[10px] text-slate-400 block font-sans">Escalation Rate</span>
-                <span className="text-sm font-bold text-rose-400">
+              <div className="border-l border-slate-800 pl-8">
+                <span className="text-xs text-slate-400 block font-sans font-medium">Escalation Rate</span>
+                <span className="text-base font-bold text-rose-400">
                   {data.fraud_stats.escalation_rate}%
                 </span>
               </div>
-              <div className="border-l border-slate-800 pl-6">
-                <span className="text-[10px] text-slate-400 block font-sans">High Risk Flags</span>
-                <span className="text-sm font-bold text-rose-400">
+              <div className="border-l border-slate-800 pl-8">
+                <span className="text-xs text-slate-400 block font-sans font-medium">High Risk Flags</span>
+                <span className="text-base font-bold text-rose-400">
                   {data.fraud_stats.high_risk_count}
                 </span>
               </div>
@@ -247,19 +247,19 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </div>
 
         {/* Chart 1: Order Status Distribution (Donut Chart) */}
-        <div className="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+        <div className="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-sm">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-100">
                 Order Fulfillment Status
               </h3>
-              <p className="text-[11px] text-slate-400">Distribution across pipeline stages</p>
+              <p className="text-xs text-slate-400 mt-0.5">Distribution across pipeline stages</p>
             </div>
           </div>
 
-          <div className="h-60 w-full flex items-center justify-center">
+          <div className="h-72 w-full flex items-center justify-center">
             {data.total_orders === 0 ? (
-              <p className="text-xs text-slate-500">No orders placed yet</p>
+              <p className="text-sm text-slate-500">No orders placed yet</p>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -267,8 +267,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                     data={data.status_distribution}
                     cx="50%"
                     cy="50%"
-                    innerRadius={55}
-                    outerRadius={80}
+                    innerRadius={65}
+                    outerRadius={95}
                     paddingAngle={4}
                     dataKey="value"
                   >
@@ -280,8 +280,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                     contentStyle={{
                       backgroundColor: "#0f172a",
                       borderColor: "#334155",
-                      borderRadius: "8px",
-                      fontSize: "12px",
+                      borderRadius: "10px",
+                      fontSize: "14px",
                       color: "#f8fafc",
                     }}
                   />
@@ -290,53 +290,53 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             )}
           </div>
 
-          <div className="flex justify-center gap-4 mt-2">
+          <div className="flex justify-center gap-5 mt-3">
             {data.status_distribution.map((item) => (
-              <div key={item.name} className="flex items-center gap-1.5 text-xs text-slate-300">
+              <div key={item.name} className="flex items-center gap-2 text-sm text-slate-300">
                 <span
-                  className="w-2.5 h-2.5 rounded-full"
+                  className="w-3 h-3 rounded-full"
                   style={{ backgroundColor: item.color }}
                 />
-                <span>{item.name}:</span>
-                <span className="font-mono font-bold">{item.value}</span>
+                <span className="font-medium">{item.name}:</span>
+                <span className="font-mono font-bold text-white">{item.value}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Chart 2: Fraud Risk Tier Breakdown (Bar Chart) */}
-        <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+        <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-sm">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-100">
                 Fraud Risk Classification
               </h3>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-xs text-slate-400 mt-0.5">
                 Low (0-29), Medium (30-69), High Escalation (70-100)
               </p>
             </div>
           </div>
 
-          <div className="h-60 w-full">
+          <div className="h-72 w-full">
             {data.fraud_stats.total_evaluated === 0 ? (
-              <div className="h-full flex items-center justify-center text-xs text-slate-500">
+              <div className="h-full flex items-center justify-center text-sm text-slate-500">
                 No orders evaluated by Fraud Check Agent yet
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data.risk_distribution}>
-                  <XAxis dataKey="tier" stroke="#64748b" fontSize={11} tickLine={false} />
-                  <YAxis stroke="#64748b" fontSize={11} tickLine={false} allowDecimals={false} />
+                  <XAxis dataKey="tier" stroke="#94a3b8" fontSize={13} tickLine={false} />
+                  <YAxis stroke="#94a3b8" fontSize={13} tickLine={false} allowDecimals={false} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "#0f172a",
                       borderColor: "#334155",
-                      borderRadius: "8px",
-                      fontSize: "12px",
+                      borderRadius: "10px",
+                      fontSize: "14px",
                       color: "#f8fafc",
                     }}
                   />
-                  <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                  <Bar dataKey="count" radius={[6, 6, 0, 0]}>
                     {data.risk_distribution.map((entry, index) => (
                       <Cell key={`bar-${index}`} fill={entry.color} />
                     ))}
@@ -346,7 +346,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             )}
           </div>
 
-          <div className="flex justify-around text-xs text-slate-400 mt-2 font-mono">
+          <div className="flex justify-around text-sm text-slate-300 mt-3 font-mono">
             <div>
               Low Risk: <span className="text-emerald-400 font-bold">{data.fraud_stats.low_risk_count}</span>
             </div>
@@ -361,38 +361,38 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       </div>
 
       {/* Recent Activity Feed */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
-          <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-indigo-400" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-sm">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
+          <div className="flex items-center gap-2.5">
+            <Activity className="w-5 h-5 text-indigo-400" />
+            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-100">
               Live Multi-Agent Activity Stream
             </h3>
           </div>
           <button
             onClick={loadData}
-            className="text-[11px] text-slate-400 hover:text-white flex items-center gap-1 transition"
+            className="text-xs text-slate-400 hover:text-white flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 transition"
           >
-            <RefreshCw className="w-3 h-3" /> Refresh
+            <RefreshCw className="w-3.5 h-3.5" /> Refresh Stream
           </button>
         </div>
 
         {data.recent_activity.length === 0 ? (
-          <div className="p-8 text-center text-slate-500 text-xs">
+          <div className="p-8 text-center text-slate-500 text-sm">
             No agent execution logs recorded yet. Place an order in Create Order tab to start the pipeline!
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-slate-800/80 text-[11px] font-semibold text-slate-400">
-                  <th className="pb-2.5">Agent</th>
-                  <th className="pb-2.5">Order ID</th>
-                  <th className="pb-2.5">Action</th>
-                  <th className="pb-2.5">Status</th>
-                  <th className="pb-2.5">Latency</th>
-                  <th className="pb-2.5">Message</th>
-                  <th className="pb-2.5 text-right">View</th>
+                <tr className="border-b border-slate-800/80 text-xs font-bold uppercase tracking-wider text-slate-400">
+                  <th className="pb-3 px-3">Agent</th>
+                  <th className="pb-3 px-3">Order ID</th>
+                  <th className="pb-3 px-3">Action</th>
+                  <th className="pb-3 px-3">Status</th>
+                  <th className="pb-3 px-3">Latency</th>
+                  <th className="pb-3 px-3">Message</th>
+                  <th className="pb-3 px-3 text-right">View</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/50">
@@ -400,50 +400,50 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                   const getStatusBadge = (st: string) => {
                     switch (st) {
                       case "SUCCESS":
-                        return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+                        return "bg-emerald-500/15 text-emerald-400 border-emerald-500/30";
                       case "HELD":
                       case "FAILED":
-                        return "bg-rose-500/10 text-rose-400 border-rose-500/20";
+                        return "bg-rose-500/15 text-rose-400 border-rose-500/30";
                       case "WARNING":
-                        return "bg-amber-500/10 text-amber-400 border-amber-500/20";
+                        return "bg-amber-500/15 text-amber-400 border-amber-500/30";
                       default:
-                        return "bg-indigo-500/10 text-indigo-400 border-indigo-500/20";
+                        return "bg-indigo-500/15 text-indigo-400 border-indigo-500/30";
                     }
                   };
 
                   return (
-                    <tr key={act.id} className="hover:bg-slate-800/40 transition">
-                      <td className="py-2.5 font-semibold text-slate-200">
+                    <tr key={act.id} className="hover:bg-slate-800/50 transition">
+                      <td className="py-3 px-3 font-semibold text-slate-100">
                         {act.agent_name}
                       </td>
-                      <td className="py-2.5 font-mono text-slate-400">
+                      <td className="py-3 px-3 font-mono text-slate-300 font-medium">
                         {act.order_id}
                       </td>
-                      <td className="py-2.5 text-slate-300 font-mono text-[11px]">
+                      <td className="py-3 px-3 text-slate-300 font-mono text-xs">
                         {act.action}
                       </td>
-                      <td className="py-2.5">
+                      <td className="py-3 px-3">
                         <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-mono font-semibold border ${getStatusBadge(
+                          className={`px-2.5 py-1 rounded-full text-xs font-mono font-bold border ${getStatusBadge(
                             act.status
                           )}`}
                         >
                           {act.status}
                         </span>
                       </td>
-                      <td className="py-2.5 font-mono text-slate-400 text-[11px]">
+                      <td className="py-3 px-3 font-mono text-slate-300 text-xs">
                         {act.execution_time_ms} ms
                       </td>
-                      <td className="py-2.5 text-slate-300 max-w-xs truncate" title={act.message}>
+                      <td className="py-3 px-3 text-slate-200 max-w-sm truncate" title={act.message}>
                         {act.message}
                       </td>
-                      <td className="py-2.5 text-right">
+                      <td className="py-3 px-3 text-right">
                         <button
                           onClick={() => onViewOrder(act.order_id)}
-                          className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-indigo-400 transition"
+                          className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-indigo-400 transition"
                           title="View Order Details"
                         >
-                          <Eye className="w-3.5 h-3.5" />
+                          <Eye className="w-4 h-4" />
                         </button>
                       </td>
                     </tr>

@@ -124,28 +124,28 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({ orderState, is
           return (
             <div
               key={step.id}
-              className={`relative border rounded-lg p-3 transition-all ${badgeColor}`}
+              className={`relative border rounded-xl p-4 transition-all shadow-sm ${badgeColor}`}
             >
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs font-bold truncate">{step.name}</span>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-bold truncate">{step.name}</span>
                 {icon}
               </div>
-              <div className="text-[11px] text-slate-400 line-clamp-1">{step.role}</div>
+              <div className="text-xs text-slate-400 line-clamp-1">{step.role}</div>
 
-              <div className="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px]">
+              <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-xs">
                 <span className="text-slate-400">Status:</span>
                 <span className="font-semibold uppercase tracking-wider">{step.status}</span>
               </div>
 
               {step.timeMs > 0 && (
-                <div className="flex items-center justify-between text-[10px] text-slate-400 mt-0.5">
+                <div className="flex items-center justify-between text-xs text-slate-400 mt-1">
                   <span>Latency:</span>
-                  <span className="font-mono text-slate-300">{step.timeMs}ms</span>
+                  <span className="font-mono text-slate-300 font-semibold">{step.timeMs}ms</span>
                 </div>
               )}
 
               {step.score !== null && (
-                <div className="flex items-center justify-between text-[10px] mt-0.5">
+                <div className="flex items-center justify-between text-xs mt-1">
                   <span className="text-slate-400">Risk Score:</span>
                   <span className="font-mono font-bold text-amber-300">{step.score}/100</span>
                 </div>
@@ -156,33 +156,33 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({ orderState, is
       </div>
 
       {orderState && orderState.hold_reason && (
-        <div className="mt-4 p-3 rounded-lg bg-rose-950/40 border border-rose-800/50 flex items-start gap-3">
-          <ShieldAlert className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+        <div className="mt-4 p-4 rounded-xl bg-rose-950/40 border border-rose-800/50 flex items-start gap-3">
+          <ShieldAlert className="w-6 h-6 text-rose-400 shrink-0 mt-0.5" />
           <div>
-            <div className="text-xs font-bold text-rose-300 uppercase tracking-wide">
+            <div className="text-sm font-bold text-rose-300 uppercase tracking-wide">
               Pipeline Escalation — Order Held
             </div>
-            <div className="text-xs text-rose-200 mt-0.5">{orderState.hold_reason}</div>
+            <div className="text-sm text-rose-200 mt-1 leading-relaxed">{orderState.hold_reason}</div>
           </div>
         </div>
       )}
 
       {orderState && orderState.dispatch_status === "DISPATCHED" && (
-        <div className="mt-4 p-3 rounded-lg bg-emerald-950/40 border border-emerald-800/50 flex items-center justify-between">
+        <div className="mt-4 p-4 rounded-xl bg-emerald-950/40 border border-emerald-800/50 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+            <CheckCircle2 className="w-6 h-6 text-emerald-400 shrink-0" />
             <div>
-              <div className="text-xs font-bold text-emerald-300 uppercase tracking-wide">
+              <div className="text-sm font-bold text-emerald-300 uppercase tracking-wide">
                 Order Dispatched Successfully
               </div>
-              <div className="text-xs text-emerald-200 mt-0.5">
+              <div className="text-xs text-emerald-200 mt-1">
                 Carrier: {orderState.carrier} | Method: {orderState.shipping_method}
               </div>
             </div>
           </div>
           <div className="text-right">
-            <span className="text-[11px] text-slate-400">Tracking Number</span>
-            <div className="font-mono font-bold text-sm text-emerald-400">{orderState.tracking_id}</div>
+            <span className="text-xs text-slate-400 font-medium">Tracking Number</span>
+            <div className="font-mono font-bold text-base text-emerald-400 mt-0.5">{orderState.tracking_id}</div>
           </div>
         </div>
       )}

@@ -122,38 +122,38 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({
     <div className="space-y-6">
       {/* Top Bar with Back Button & Status Header */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3.5">
           <button
             onClick={onBack}
-            className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition"
+            className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition shadow-sm"
             title="Back to Order Management"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-base font-bold text-slate-100 font-mono">
+            <div className="flex items-center gap-2.5">
+              <h2 className="text-xl font-bold text-slate-100 font-mono">
                 {orderDetails.order_id}
               </h2>
               <span
-                className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${getStatusColor(
+                className={`px-3 py-1 rounded-full text-xs font-mono font-bold border ${getStatusColor(
                   orderDetails.status
                 )}`}
               >
                 {orderDetails.status}
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Placed on {createdDate} &bull; Customer ID: {orderDetails.customer_id}
+            <p className="text-sm text-slate-400 mt-1 font-medium">
+              Placed on {createdDate} &bull; Customer ID: <span className="font-mono text-slate-300">{orderDetails.customer_id}</span>
             </p>
           </div>
         </div>
 
         <div className="text-right">
-          <span className="text-[10px] uppercase tracking-wider text-slate-400 block">
+          <span className="text-xs uppercase font-bold tracking-wider text-slate-400 block mb-1">
             Final Payable Amount
           </span>
-          <span className="text-xl font-black font-mono text-emerald-400">
+          <span className="text-3xl font-black font-mono text-emerald-400">
             ${Number(orderDetails.total_amount || 0).toFixed(2)}
           </span>
         </div>
@@ -164,22 +164,22 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({
         {/* Left Column: Items, Pricing Breakdown & Addresses */}
         <div className="lg:col-span-7 space-y-6">
           {/* Purchased Items Card */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-1.5 border-b border-slate-800 pb-2.5">
-              <Package className="w-4 h-4 text-indigo-400" />
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-100 flex items-center gap-2 border-b border-slate-800 pb-3">
+              <Package className="w-5 h-5 text-indigo-400" />
               Line Items & Inventory Reservation
             </h3>
 
             <div className="divide-y divide-slate-800/80">
               {orderDetails.items.map((item, idx) => (
-                <div key={idx} className="py-2.5 flex items-center justify-between text-xs">
+                <div key={idx} className="py-3.5 flex items-center justify-between text-sm">
                   <div>
-                    <div className="font-semibold text-slate-200">{item.name}</div>
-                    <div className="text-[10px] font-mono text-slate-400">
+                    <div className="font-bold text-slate-100 text-sm">{item.name}</div>
+                    <div className="text-xs font-mono text-slate-400 mt-0.5">
                       SKU: {item.sku} &bull; Qty: {item.quantity} &times; ${Number(item.unit_price || 0).toFixed(2)}
                     </div>
                   </div>
-                  <div className="font-mono font-bold text-slate-200">
+                  <div className="font-mono font-bold text-slate-100 text-sm">
                     ${Number(item.total_price || 0).toFixed(2)}
                   </div>
                 </div>
@@ -188,56 +188,56 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({
           </div>
 
           {/* Deterministic Financial Pricing Breakdown Card */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-1.5 border-b border-slate-800 pb-2.5">
-              <DollarSign className="w-4 h-4 text-emerald-400" />
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-100 flex items-center gap-2 border-b border-slate-800 pb-3">
+              <DollarSign className="w-5 h-5 text-emerald-400" />
               Pricing Agent Deterministic Decimal Ledger
             </h3>
 
-            <div className="space-y-2 text-xs font-mono">
-              <div className="flex justify-between text-slate-300">
+            <div className="space-y-3 text-sm font-mono">
+              <div className="flex justify-between text-slate-200">
                 <span className="font-sans text-slate-400">Subtotal</span>
                 <span>${Number(orderDetails.subtotal || 0).toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-emerald-400">
+              <div className="flex justify-between text-emerald-400 font-semibold">
                 <span className="font-sans text-slate-400">Discounts Applied</span>
                 <span>-${Number(orderDetails.discount_amount || 0).toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-slate-300">
+              <div className="flex justify-between text-slate-200">
                 <span className="font-sans text-slate-400">Sales Tax (8%)</span>
                 <span>+${Number(orderDetails.tax_amount || 0).toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-slate-300">
+              <div className="flex justify-between text-slate-200">
                 <span className="font-sans text-slate-400">Shipping Charges</span>
                 <span>+${Number(orderDetails.shipping_cost || 0).toFixed(2)}</span>
               </div>
-              <div className="border-t border-slate-800 pt-2 flex justify-between text-sm font-bold text-slate-100">
+              <div className="border-t border-slate-800 pt-3 flex justify-between text-base font-bold text-slate-100">
                 <span className="font-sans">Total Payable</span>
-                <span className="text-emerald-400">${Number(orderDetails.total_amount || 0).toFixed(2)}</span>
+                <span className="text-emerald-400 text-lg">${Number(orderDetails.total_amount || 0).toFixed(2)}</span>
               </div>
             </div>
           </div>
 
           {/* Addresses & Payment Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm text-xs space-y-1.5">
-              <div className="font-bold text-[11px] uppercase tracking-wider text-slate-400 flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-indigo-400" /> Shipping Destination
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm text-sm space-y-2">
+              <div className="font-bold text-xs uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <MapPin className="w-4 h-4 text-indigo-400" /> Shipping Destination
               </div>
-              <div className="text-slate-200 leading-relaxed">
+              <div className="text-slate-200 leading-relaxed font-medium">
                 {orderDetails.shipping_address || "Standard Ground Destination"}
               </div>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm text-xs space-y-1.5">
-              <div className="font-bold text-[11px] uppercase tracking-wider text-slate-400 flex items-center gap-1">
-                <CreditCard className="w-3.5 h-3.5 text-indigo-400" /> Payment & Billing
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm text-sm space-y-2">
+              <div className="font-bold text-xs uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <CreditCard className="w-4 h-4 text-indigo-400" /> Payment & Billing
               </div>
-              <div className="text-slate-200 font-mono">
+              <div className="text-slate-200 font-mono font-medium">
                 Method: {orderDetails.payment_method}
               </div>
               {orderDetails.billing_address && (
-                <div className="text-[11px] text-slate-400 truncate">
+                <div className="text-xs text-slate-400 truncate mt-1">
                   Billing: {orderDetails.billing_address}
                 </div>
               )}

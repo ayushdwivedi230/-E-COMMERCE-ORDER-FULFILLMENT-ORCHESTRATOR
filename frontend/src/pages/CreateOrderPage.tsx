@@ -220,54 +220,54 @@ export const CreateOrderPage: React.FC<CreateOrderPageProps> = ({
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
               Automated Pipeline Test Demonstrations
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => applyScenario("success")}
-                className="p-2 rounded bg-slate-950 hover:bg-slate-800 border border-slate-800 text-left transition"
+                className="p-3.5 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-left transition shadow-sm"
               >
-                <div className="text-[11px] font-bold text-emerald-400">1. Successful Order</div>
-                <div className="text-[10px] text-slate-400 mt-0.5">Dispatched + Tracking ID</div>
+                <div className="text-sm font-bold text-emerald-400">1. Successful Order</div>
+                <div className="text-xs text-slate-400 mt-1">Dispatched + Tracking ID</div>
               </button>
               <button
                 type="button"
                 onClick={() => applyScenario("invalid")}
-                className="p-2 rounded bg-slate-950 hover:bg-slate-800 border border-slate-800 text-left transition"
+                className="p-3.5 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-left transition shadow-sm"
               >
-                <div className="text-[11px] font-bold text-rose-400">2. Invalid Order</div>
-                <div className="text-[10px] text-slate-400 mt-0.5">Validation stops at Agent 1</div>
+                <div className="text-sm font-bold text-rose-400">2. Invalid Order</div>
+                <div className="text-xs text-slate-400 mt-1">Validation stops at Agent 1</div>
               </button>
               <button
                 type="button"
                 onClick={() => applyScenario("fraud")}
-                className="p-2 rounded bg-slate-950 hover:bg-slate-800 border border-slate-800 text-left transition"
+                className="p-3.5 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-left transition shadow-sm"
               >
-                <div className="text-[11px] font-bold text-rose-500">3. High-Risk Fraud</div>
-                <div className="text-[10px] text-slate-400 mt-0.5">Score &ge; 70 &rarr; Hold Queue</div>
+                <div className="text-sm font-bold text-rose-500">3. High-Risk Fraud</div>
+                <div className="text-xs text-slate-400 mt-1">Score &ge; 70 &rarr; Hold Queue</div>
               </button>
               <button
                 type="button"
                 onClick={() => applyScenario("inventory")}
-                className="p-2 rounded bg-slate-950 hover:bg-slate-800 border border-slate-800 text-left transition"
+                className="p-3.5 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-left transition shadow-sm"
               >
-                <div className="text-[11px] font-bold text-amber-400">4. Low Inventory</div>
-                <div className="text-[10px] text-slate-400 mt-0.5">Backorder / Substitute</div>
+                <div className="text-sm font-bold text-amber-400">4. Low Inventory</div>
+                <div className="text-xs text-slate-400 mt-1">Backorder / Substitute</div>
               </button>
               <button
                 type="button"
                 onClick={() => applyScenario("verified_cust")}
-                className="p-2 rounded bg-slate-950 hover:bg-slate-800 border border-slate-800 text-left transition"
+                className="p-3.5 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-left transition shadow-sm"
               >
-                <div className="text-[11px] font-bold text-cyan-400">5. Verified History</div>
-                <div className="text-[10px] text-slate-400 mt-0.5">Clean customer memory</div>
+                <div className="text-sm font-bold text-cyan-400">5. Verified History</div>
+                <div className="text-xs text-slate-400 mt-1">Clean customer memory</div>
               </button>
               <button
                 type="button"
                 onClick={() => applyScenario("suspicious_cust")}
-                className="p-2 rounded bg-slate-950 hover:bg-slate-800 border border-slate-800 text-left transition"
+                className="p-3.5 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-left transition shadow-sm"
               >
-                <div className="text-[11px] font-bold text-orange-400">6. Suspicious History</div>
-                <div className="text-[10px] text-slate-400 mt-0.5">Past chargeback impact</div>
+                <div className="text-sm font-bold text-orange-400">6. Suspicious History</div>
+                <div className="text-xs text-slate-400 mt-1">Past chargeback impact</div>
               </button>
             </div>
           </div>
@@ -275,22 +275,22 @@ export const CreateOrderPage: React.FC<CreateOrderPageProps> = ({
           {/* Order Submission Form */}
           <form
             onSubmit={handleRunPipeline}
-            className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm space-y-4"
+            className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-sm space-y-5"
           >
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200 border-b border-slate-800 pb-2 flex items-center justify-between">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-100 border-b border-slate-800 pb-3 flex items-center justify-between">
               <span>Order Parameters</span>
-              <span className="text-[10px] text-slate-400 font-mono">POST /api/orders/process</span>
+              <span className="text-xs text-slate-400 font-mono">POST /api/orders/process</span>
             </h3>
 
             {/* Customer Select */}
             <div>
-              <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
                 Customer Profile & Prior Memory
               </label>
               <select
                 value={selectedCustomerId}
                 onChange={(e) => setSelectedCustomerId(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
               >
                 {customers.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -301,13 +301,13 @@ export const CreateOrderPage: React.FC<CreateOrderPageProps> = ({
 
               {/* Memory Indicator Card */}
               {selectedCustomer?.history_stats && (
-                <div className="mt-1.5 p-2 bg-slate-950 rounded border border-slate-800/80 text-[10px] flex items-center justify-between text-slate-400">
-                  <span className="flex items-center gap-1 text-slate-300 font-medium">
-                    <Shield className="w-3 h-3 text-indigo-400" />
+                <div className="mt-2 p-3 bg-slate-950 rounded-xl border border-slate-800/80 text-xs flex items-center justify-between text-slate-400">
+                  <span className="flex items-center gap-1.5 text-slate-300 font-medium">
+                    <Shield className="w-4 h-4 text-indigo-400" />
                     Memory: {selectedCustomer.history_stats.successful_orders} Delivered / {selectedCustomer.history_stats.suspicious_orders} Suspicious
                   </span>
                   <span
-                    className={`font-mono font-bold px-1.5 py-0.5 rounded ${
+                    className={`font-mono font-bold px-2 py-0.5 rounded-full text-xs ${
                       selectedCustomer.history_stats.risk_tier === "HIGH"
                         ? "bg-rose-950 text-rose-400 border border-rose-800"
                         : selectedCustomer.history_stats.risk_tier === "MEDIUM"
@@ -322,15 +322,15 @@ export const CreateOrderPage: React.FC<CreateOrderPageProps> = ({
             </div>
 
             {/* Product & Quantity */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-4">
               <div className="col-span-2">
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
                   Catalog Product SKU
                 </label>
                 <select
                   value={selectedSku}
                   onChange={(e) => setSelectedSku(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
                 >
                   {products.map((p) => (
                     <option key={p.sku} value={p.sku}>
@@ -339,7 +339,7 @@ export const CreateOrderPage: React.FC<CreateOrderPageProps> = ({
                   ))}
                 </select>
                 {selectedProduct && (
-                  <div className="text-[10px] text-slate-400 mt-1 flex justify-between">
+                  <div className="text-xs text-slate-400 mt-1.5 flex justify-between font-medium">
                     <span>{selectedProduct.name}</span>
                     <span className={selectedProduct.stock_quantity === 0 ? "text-rose-400 font-bold" : "text-emerald-400"}>
                       {selectedProduct.stock_quantity} available
@@ -349,7 +349,7 @@ export const CreateOrderPage: React.FC<CreateOrderPageProps> = ({
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
                   Quantity
                 </label>
                 <input
@@ -358,10 +358,10 @@ export const CreateOrderPage: React.FC<CreateOrderPageProps> = ({
                   max="99"
                   value={quantity}
                   onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-mono"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 font-mono font-semibold"
                 />
                 {selectedProduct && (
-                  <div className="text-[10px] text-slate-400 mt-1 font-mono text-right">
+                  <div className="text-xs text-slate-400 mt-1.5 font-mono text-right font-medium">
                     Sub: ${(Number(selectedProduct.price || 0) * quantity).toFixed(2)}
                   </div>
                 )}
@@ -369,9 +369,9 @@ export const CreateOrderPage: React.FC<CreateOrderPageProps> = ({
             </div>
 
             {/* Coupon & Failed Retries */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
                   Coupon Code
                 </label>
                 <input
@@ -379,12 +379,12 @@ export const CreateOrderPage: React.FC<CreateOrderPageProps> = ({
                   placeholder="WELCOME10, SAVE20"
                   value={couponCode}
                   onChange={(e) => setCouponCode(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 uppercase font-mono focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 uppercase font-mono focus:outline-none focus:border-indigo-500 font-medium"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
                   Failed Payment Attempts
                 </label>
                 <input
@@ -393,60 +393,60 @@ export const CreateOrderPage: React.FC<CreateOrderPageProps> = ({
                   max="5"
                   value={simulatedFailedAttempts}
                   onChange={(e) => setSimulatedFailedAttempts(parseInt(e.target.value) || 0)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 font-mono focus:outline-none focus:border-indigo-500 font-medium"
                 />
               </div>
             </div>
 
             {/* Shipping Address */}
             <div>
-              <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
                 Shipping Destination
               </label>
-              <div className="grid grid-cols-2 gap-2 mb-2">
+              <div className="grid grid-cols-2 gap-3 mb-3">
                 <input
                   type="text"
                   value={shippingStreet}
                   onChange={(e) => setShippingStreet(e.target.value)}
-                  className="bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+                  className="bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
                   placeholder="Street Address"
                 />
                 <input
                   type="text"
                   value={shippingCity}
                   onChange={(e) => setShippingCity(e.target.value)}
-                  className="bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+                  className="bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
                   placeholder="City"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 <input
                   type="text"
                   value={shippingState}
                   onChange={(e) => setShippingState(e.target.value)}
-                  className="bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+                  className="bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
                   placeholder="State"
                 />
                 <input
                   type="text"
                   value={shippingZip}
                   onChange={(e) => setShippingZip(e.target.value)}
-                  className="bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+                  className="bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
                   placeholder="Postal Code"
                 />
               </div>
             </div>
 
             {/* Billing Mismatch Toggle */}
-            <div className="flex items-center gap-2 pt-1">
+            <div className="flex items-center gap-2.5 pt-1">
               <input
                 type="checkbox"
                 id="mismatchCheck"
                 checked={billingMismatch}
                 onChange={(e) => setBillingMismatch(e.target.checked)}
-                className="rounded bg-slate-950 border-slate-800 text-indigo-600 focus:ring-0"
+                className="w-4 h-4 rounded bg-slate-950 border-slate-800 text-indigo-600 focus:ring-0"
               />
-              <label htmlFor="mismatchCheck" className="text-xs text-slate-300 cursor-pointer">
+              <label htmlFor="mismatchCheck" className="text-sm font-medium text-slate-300 cursor-pointer">
                 Simulate Billing Address Mismatch (+20 risk points)
               </label>
             </div>
@@ -455,16 +455,16 @@ export const CreateOrderPage: React.FC<CreateOrderPageProps> = ({
             <button
               type="submit"
               disabled={isProcessing}
-              className="w-full py-2.5 px-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold rounded-lg shadow-lg flex items-center justify-center gap-2 transition-all disabled:opacity-50 text-xs uppercase tracking-wider"
+              className="w-full py-3.5 px-6 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-2.5 transition-all disabled:opacity-50 text-sm uppercase tracking-wider"
             >
               {isProcessing ? (
                 <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <RefreshCw className="w-5 h-5 animate-spin" />
                   Orchestrating 5 Agents...
                 </>
               ) : (
                 <>
-                  <Send className="w-4 h-4" />
+                  <Send className="w-5 h-5" />
                   Trigger Multi-Agent Fulfillment Pipeline
                 </>
               )}
