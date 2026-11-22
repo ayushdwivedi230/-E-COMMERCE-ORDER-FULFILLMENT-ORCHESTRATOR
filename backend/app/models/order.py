@@ -1,7 +1,7 @@
 import datetime
 from sqlalchemy import Column, String, DateTime, Text, Numeric, Integer, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
-from backend.app.database import Base
+from backend.app.database import Base, utc_now
 
 
 class Order(Base):
@@ -22,8 +22,8 @@ class Order(Base):
     fraud_score = Column(Numeric(5, 2), nullable=True)
     hold_reason = Column(Text, nullable=True)
     tracking_id = Column(String(100), nullable=True)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
     # Relationships
     customer = relationship("Customer", back_populates="orders")
@@ -69,6 +69,6 @@ class OrderHistory(Base):
     is_suspicious = Column(Boolean, default=False, nullable=False)
     failed_payment_attempts = Column(Integer, default=0, nullable=False)
     notes = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
 
     customer = relationship("Customer", back_populates="order_history")

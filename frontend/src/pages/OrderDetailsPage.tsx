@@ -11,6 +11,8 @@ import {
   MapPin,
   CreditCard,
   RefreshCw,
+  Mail,
+  MessageSquare,
 } from "lucide-react";
 import { fetchOrderDetails, fetchOrders } from "../api";
 import type { FullOrderDetails, OrderSummary } from "../types";
@@ -295,6 +297,54 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({
                 <div className="flex items-center gap-1.5 text-slate-500">
                   <Package className="w-4 h-4" />
                   <span>Delivered</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Customer Notification Preview (Drafted by NotificationAgent) */}
+          {orderDetails.notification_draft && (
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-1.5">
+                  <Mail className="w-4 h-4 text-emerald-400" />
+                  Customer Notification Draft
+                </h3>
+                <span className="text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                  NotificationAgent &bull; Preview Mode
+                </span>
+              </div>
+
+              <div className="space-y-2 text-xs">
+                <div className="flex items-center justify-between text-slate-400 bg-slate-950 p-2 rounded border border-slate-800/80">
+                  <span className="font-semibold text-slate-300">Recipient:</span>
+                  <span className="font-mono text-slate-400">{orderDetails.notification_draft.recipient_email || "customer@example.com"}</span>
+                </div>
+
+                <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-2">
+                  <div className="font-bold text-slate-200 border-b border-slate-800/60 pb-1.5 flex items-center justify-between">
+                    <span>Subject: {orderDetails.notification_draft.subject}</span>
+                    <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-indigo-500/15 text-indigo-300 border border-indigo-500/20">
+                      {orderDetails.notification_draft.intent}
+                    </span>
+                  </div>
+                  <p className="text-slate-300 whitespace-pre-wrap leading-relaxed text-[11px] font-sans">
+                    {orderDetails.notification_draft.body}
+                  </p>
+                </div>
+
+                {orderDetails.notification_draft.sms_summary && (
+                  <div className="bg-slate-950/60 p-2.5 rounded border border-slate-800/80 flex items-start gap-2">
+                    <MessageSquare className="w-3.5 h-3.5 text-cyan-400 mt-0.5 shrink-0" />
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide block">SMS Summary Preview:</span>
+                      <span className="text-slate-300 font-mono text-[11px]">{orderDetails.notification_draft.sms_summary}</span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="text-[10px] text-slate-500 italic flex items-center gap-1 pt-1">
+                  <span>* Simulated preview drafted by NotificationAgent. External transmission disabled to prevent unconfigured gateway charges.</span>
                 </div>
               </div>
             </div>

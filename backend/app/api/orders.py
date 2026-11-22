@@ -217,7 +217,29 @@ def get_order_details(order_id: str, db: Session = Depends(get_db)):
             }
             for r in reviews
         ],
+        "notification_draft": (
+            {
+                "channel": "EMAIL_AND_SMS",
+                "recipient_email": order.customer.email if order.customer else "customer@example.com",
+                "subject": f"Order Update: {order.id} ({order.status})",
+                "body": (
+                    f"Dear {order.customer.name if order.customer else 'Valued Customer'},\n\n"
+                    f"Your order {order.id} is {order.status}."
+                    + (f" Carrier: {shipment.carrier}, Tracking: {order.tracking_id}." if order.tracking_id else f" Notice: {order.hold_reason or 'Order currently held for processing.'}")
+                ),
+                "sms_summary": f"Order {order.id} is {order.status}." + (f" Tracking: {order.tracking_id}" if order.tracking_id else ""),
+                "status": "DRAFTED",
+                "intent": "CONFIRMED" if order.status == "DISPATCHED" else ("HELD_FRAUD" if (order.fraud_score or 0) >= 70 else "HELD_GENERAL"),
+            }
+        ),
     }
+
+
+@router.get("/runs/logs")
+def get_execution_run_logs(limit: int = 50):
+    """Retrieve recent append-only execution log records."""
+    from backend.app.services.run_logger import AppendOnlyRunLogger
+    return AppendOnlyRunLogger.read_recent_runs(limit=limit)
 
 
 @router.post("/{order_id}/override-hold")

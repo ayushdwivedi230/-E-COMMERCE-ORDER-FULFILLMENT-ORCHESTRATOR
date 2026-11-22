@@ -1,7 +1,7 @@
 import time
 import json
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 from agent_framework import BaseAgent, AgentResponse
 
 logger = logging.getLogger("ecommerce.agents")
@@ -19,14 +19,17 @@ class BaseOrchestratorAgent(BaseAgent):
         name: str,
         description: str,
         agent_id: Optional[str] = None,
+        tools: Optional[List[Any]] = None,
         additional_properties: Optional[Dict[str, Any]] = None,
     ) -> None:
+        props = additional_properties or {}
         super().__init__(
             id=agent_id,
             name=name,
             description=description,
-            additional_properties=additional_properties or {},
+            additional_properties=props,
         )
+        self.tools = tools or []
         self.logger = logging.getLogger(f"ecommerce.agents.{name}")
 
     async def run(
@@ -53,6 +56,7 @@ class BaseOrchestratorAgent(BaseAgent):
         message: str,
         start_time: float,
         details: Optional[Dict[str, Any]] = None,
+        tool_name: Optional[str] = None,
     ) -> int:
         """Utility method to record standard performance and execution telemetry."""
         elapsed_ms = int((time.time() - start_time) * 1000)
@@ -63,6 +67,31 @@ class BaseOrchestratorAgent(BaseAgent):
             message=message,
             execution_time_ms=elapsed_ms,
             details=details,
+            tool_name=tool_name,
         )
         self.logger.info(f"[{self.name}] {action} -> {status} ({elapsed_ms}ms): {message}")
+        return elapsed_ms
+
+    def record_tool_call(
+        self,
+        order_state,
+        tool_name: str,
+        action: str,
+        status: str,
+        message: str,
+        start_time: float,
+        details: Optional[Dict[str, Any]] = None,
+    ) -> int:
+        """Record explicit execution of an agent tool function into tool_execution_logs."""
+        elapsed_ms = int((time.time() - start_time) * 1000)
+        order_state.add_tool_log(
+            agent_name=self.name,
+            tool_name=tool_name,
+            action=action,
+            status=status,
+            message=message,
+            execution_time_ms=elapsed_ms,
+            details=details,
+        )
+        self.logger.info(f"[{self.name}] Tool {tool_name} ({action}) -> {status} ({elapsed_ms}ms): {message}")
         return elapsed_ms

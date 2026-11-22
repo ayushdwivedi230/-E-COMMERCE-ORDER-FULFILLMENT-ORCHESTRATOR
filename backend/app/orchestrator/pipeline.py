@@ -12,18 +12,29 @@ from backend.app.agents.inventory_agent import InventoryAgent
 from backend.app.agents.fraud_check_agent import FraudCheckAgent
 from backend.app.agents.pricing_agent import PricingAgent
 from backend.app.agents.dispatch_coordinator import DispatchCoordinator
+from backend.app.agents.notification_agent import NotificationAgent
 from backend.app.services.inventory_service import InventoryService
 from backend.app.services.customer_memory import CustomerMemoryService
+from backend.app.services.run_logger import AppendOnlyRunLogger
 
 
 class OrderFulfillmentOrchestrator:
     """
     Multi-Agent Pipeline Orchestrator with Fraud Escalation Route Architecture.
-    Coordinates the 5 specialised agents across a shared OrderState.
+    Coordinates the specialised agents across a shared OrderState.
     Routes high-risk or problematic transactions to the escalation hold queue.
     Guarantees final output is either:
       1. Confirmed and dispatched order with tracking ID and carrier details, OR
       2. Held order with explicit hold reason and audit justification.
+
+    Integrates:
+    - Validation Agent
+    - Inventory Agent
+    - Fraud Check Agent
+    - Pricing Agent
+    - Dispatch Coordinator
+    - Notification Agent (Drafts customer communications across all outcomes)
+    - Append-Only Run Logger (logs/execution_run_log.jsonl)
     """
 
     def __init__(self) -> None:
@@ -32,6 +43,7 @@ class OrderFulfillmentOrchestrator:
         self.fraud_agent = FraudCheckAgent()
         self.pricing_agent = PricingAgent()
         self.dispatch_coordinator = DispatchCoordinator()
+        self.notification_agent = NotificationAgent()
 
     def process_order_pipeline(
         self,
@@ -48,6 +60,8 @@ class OrderFulfillmentOrchestrator:
             db_order = self._initialize_order_record(order_state, db)
             if db_order is None:
                 # Duplicate order detected and blocked
+                self.notification_agent.process_notification(order_state)
+                AppendOnlyRunLogger.log_order_run(order_state)
                 return order_state
 
             # STAGE 1: Validation Agent (Must stop processing if invalid or payment failed)
@@ -60,6 +74,10 @@ class OrderFulfillmentOrchestrator:
                     reason=order_state.hold_reason or "Order failed structural validation or payment check.",
                     stage="VALIDATION_FAILED",
                 )
+                self.notification_agent.process_notification(order_state)
+                self._persist_agent_logs(order_state, db)
+                db.commit()
+                AppendOnlyRunLogger.log_order_run(order_state)
                 return order_state
 
             # STAGE 2: Inventory Agent (Atomic stock verification & reservation)
@@ -72,6 +90,10 @@ class OrderFulfillmentOrchestrator:
                     reason=order_state.hold_reason or "Inventory reservation incomplete.",
                     stage="INVENTORY_HELD",
                 )
+                self.notification_agent.process_notification(order_state)
+                self._persist_agent_logs(order_state, db)
+                db.commit()
+                AppendOnlyRunLogger.log_order_run(order_state)
                 return order_state
 
             # STAGE 3: Fraud Check Agent (Deterministic risk scoring & Customer Memory)
@@ -92,6 +114,10 @@ class OrderFulfillmentOrchestrator:
                     reason=order_state.hold_reason or f"Fraud Risk Escalation: Score {order_state.fraud_score} >= 70.",
                     stage="FRAUD_HELD",
                 )
+                self.notification_agent.process_notification(order_state)
+                self._persist_agent_logs(order_state, db)
+                db.commit()
+                AppendOnlyRunLogger.log_order_run(order_state)
                 return order_state
 
             # STAGE 4: Pricing Agent (Deterministic decimal arithmetic)
@@ -105,6 +131,10 @@ class OrderFulfillmentOrchestrator:
                     reason="Pricing calculation could not be completed.",
                     stage="PRICING_FAILED",
                 )
+                self.notification_agent.process_notification(order_state)
+                self._persist_agent_logs(order_state, db)
+                db.commit()
+                AppendOnlyRunLogger.log_order_run(order_state)
                 return order_state
 
             # STAGE 5: Dispatch Coordinator (Tracking, carrier selection, courier simulation)
@@ -118,10 +148,20 @@ class OrderFulfillmentOrchestrator:
                     reason=order_state.hold_reason or "Dispatch coordination failed.",
                     stage="DISPATCH_FAILED",
                 )
+                self.notification_agent.process_notification(order_state)
+                self._persist_agent_logs(order_state, db)
+                db.commit()
+                AppendOnlyRunLogger.log_order_run(order_state)
                 return order_state
+
+            # STAGE 6: Notification Agent (Draft Customer Confirmation Message)
+            self.notification_agent.process_notification(order_state)
 
             # SUCCESSFUL FULFILLMENT: Finalize DB Order & Record to History Memory
             self._finalize_dispatched_order(order_state, db, db_order)
+
+            # Append run to persistent run log
+            AppendOnlyRunLogger.log_order_run(order_state)
             return order_state
 
         except Exception as exc:
@@ -140,6 +180,11 @@ class OrderFulfillmentOrchestrator:
                 execution_time_ms=0,
                 details={"exception": str(exc)},
             )
+            try:
+                self.notification_agent.process_notification(order_state)
+            except Exception:
+                pass
+            AppendOnlyRunLogger.log_order_run(order_state)
             return order_state
 
     def _initialize_order_record(self, order_state: OrderState, db: Session) -> Optional[Order]:
@@ -252,13 +297,16 @@ class OrderFulfillmentOrchestrator:
 
     def _persist_agent_logs(self, order_state: OrderState, db: Session) -> None:
         """Store in-memory agent execution logs into the agent_logs database table."""
-        for entry in order_state.agent_execution_logs:
-            # Check if this log entry is already in DB
+        # Query existing log count for this order to avoid duplicating already written logs
+        existing_log_count = db.query(AgentLog).filter(AgentLog.order_id == order_state.order_id).count()
+        new_entries = order_state.agent_execution_logs[existing_log_count:]
+
+        for entry in new_entries:
             db_log = AgentLog(
                 id=f"LOG-{uuid.uuid4().hex[:8].upper()}",
                 order_id=order_state.order_id,
                 agent_name=entry.agent_name,
-                action=entry.action,
+                action=f"{entry.tool_name + ' -> ' if entry.tool_name else ''}{entry.action}",
                 status=entry.status,
                 input_data=json.dumps(entry.details or {}, default=str),
                 output_data=entry.message,

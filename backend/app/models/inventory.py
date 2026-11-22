@@ -1,7 +1,7 @@
 import datetime
 from sqlalchemy import Column, String, DateTime, Integer, ForeignKey
 from sqlalchemy.orm import relationship
-from backend.app.database import Base
+from backend.app.database import Base, utc_now
 
 
 class InventoryReservation(Base):
@@ -13,8 +13,8 @@ class InventoryReservation(Base):
     quantity_reserved = Column(Integer, nullable=False)
     status = Column(String(30), default="RESERVED", nullable=False)  # RESERVED, COMMITTED, RELEASED
     expires_at = Column(DateTime, nullable=False)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
     # Relationships
     order = relationship("Order", back_populates="reservations")

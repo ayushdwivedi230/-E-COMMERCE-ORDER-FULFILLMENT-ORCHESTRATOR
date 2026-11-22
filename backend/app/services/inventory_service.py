@@ -94,7 +94,7 @@ class InventoryService:
                     )
 
                 # 2. Second pass: All items available, commit atomic reservations
-                expires_at = datetime.datetime.utcnow() + datetime.timedelta(minutes=reservation_timeout_minutes)
+                expires_at = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=reservation_timeout_minutes)
                 for item in items:
                     product = db.query(Product).filter(Product.sku == item.sku).first()
                     product.stock_quantity -= item.quantity

@@ -138,7 +138,7 @@ def seed_database(db: Session) -> None:
                 is_suspicious=False,
                 failed_payment_attempts=0,
                 notes="Delivered on time, standard ground.",
-                created_at=datetime.datetime.utcnow() - datetime.timedelta(days=120),
+                created_at=datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=120),
             ),
             OrderHistory(
                 id="HIST-002",
@@ -149,7 +149,7 @@ def seed_database(db: Session) -> None:
                 is_suspicious=False,
                 failed_payment_attempts=0,
                 notes="Delivered without incident.",
-                created_at=datetime.datetime.utcnow() - datetime.timedelta(days=90),
+                created_at=datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=90),
             ),
             OrderHistory(
                 id="HIST-003",
@@ -160,7 +160,7 @@ def seed_database(db: Session) -> None:
                 is_suspicious=False,
                 failed_payment_attempts=0,
                 notes="Express delivery, repeat customer.",
-                created_at=datetime.datetime.utcnow() - datetime.timedelta(days=35),
+                created_at=datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=35),
             ),
             OrderHistory(
                 id="HIST-004",
@@ -171,7 +171,7 @@ def seed_database(db: Session) -> None:
                 is_suspicious=False,
                 failed_payment_attempts=0,
                 notes="Standard ground.",
-                created_at=datetime.datetime.utcnow() - datetime.timedelta(days=10),
+                created_at=datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=10),
             ),
 
             # CUST-002: Medium Risk Customer (1 suspicious dispute / chargeback)
@@ -184,7 +184,7 @@ def seed_database(db: Session) -> None:
                 is_suspicious=False,
                 failed_payment_attempts=0,
                 notes="Normal first purchase.",
-                created_at=datetime.datetime.utcnow() - datetime.timedelta(days=60),
+                created_at=datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=60),
             ),
             OrderHistory(
                 id="HIST-006",
@@ -195,7 +195,7 @@ def seed_database(db: Session) -> None:
                 is_suspicious=True,
                 failed_payment_attempts=1,
                 notes="Customer filed dispute stating card was misused.",
-                created_at=datetime.datetime.utcnow() - datetime.timedelta(days=20),
+                created_at=datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=20),
             ),
 
             # CUST-003: High Risk / Fraud Profile (Multiple suspicious transactions & failed attempts)
@@ -208,7 +208,7 @@ def seed_database(db: Session) -> None:
                 is_suspicious=True,
                 failed_payment_attempts=3,
                 notes="Rapid card retries with mismatched CVVs.",
-                created_at=datetime.datetime.utcnow() - datetime.timedelta(days=14),
+                created_at=datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=14),
             ),
             OrderHistory(
                 id="HIST-008",
@@ -219,7 +219,7 @@ def seed_database(db: Session) -> None:
                 is_suspicious=True,
                 failed_payment_attempts=2,
                 notes="Bank confirmed fraudulent stolen card transaction.",
-                created_at=datetime.datetime.utcnow() - datetime.timedelta(days=5),
+                created_at=datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=5),
             ),
 
             # CUST-004: Brand New Customer (0 past orders)

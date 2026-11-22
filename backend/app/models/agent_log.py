@@ -1,7 +1,7 @@
 import datetime
 from sqlalchemy import Column, String, DateTime, Text, Integer, ForeignKey
 from sqlalchemy.orm import relationship
-from backend.app.database import Base
+from backend.app.database import Base, utc_now
 
 
 class AgentLog(Base):
@@ -16,7 +16,7 @@ class AgentLog(Base):
     output_data = Column(Text, nullable=True)  # JSON or text result
     execution_time_ms = Column(Integer, default=0)
     error_message = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
 
     # Relationships
     order = relationship("Order", back_populates="agent_logs")

@@ -12,43 +12,37 @@ router = APIRouter(prefix="/api/agents", tags=["Agents"])
 orchestrator = OrderFulfillmentOrchestrator()
 
 
+def _format_agent_entry(agent, role: str) -> Dict[str, Any]:
+    return {
+        "name": agent.name,
+        "id": agent.id,
+        "description": agent.description,
+        "role": role,
+        "tools": [
+            {
+                "name": getattr(t, "name", getattr(t, "__name__", str(t))),
+                "description": getattr(t, "description", getattr(t, "__doc__", "") or "").strip(),
+            }
+            for t in getattr(agent, "tools", [])
+        ],
+    }
+
+
 @router.get("/info")
 def get_agents_info():
-    """Introspect all five specialised agents and Microsoft Agent Framework metadata."""
+    """Introspect all specialised agents and Microsoft Agent Framework metadata."""
     return {
         "framework": "Microsoft Agent Framework",
         "framework_version": getattr(agent_framework, "__version__", "1.26.0"),
         "agents": [
-            {
-                "name": orchestrator.validation_agent.name,
-                "id": orchestrator.validation_agent.id,
-                "description": orchestrator.validation_agent.description,
-                "role": "Agent 1: Structural & Business Validation",
-            },
-            {
-                "name": orchestrator.inventory_agent.name,
-                "id": orchestrator.inventory_agent.id,
-                "description": orchestrator.inventory_agent.description,
-                "role": "Agent 2: Atomic Inventory Reservation & Stock Intelligence",
-            },
-            {
-                "name": orchestrator.fraud_agent.name,
-                "id": orchestrator.fraud_agent.id,
-                "description": orchestrator.fraud_agent.description,
-                "role": "Agent 3: Deterministic Risk Scoring & Contextual AI Analysis",
-            },
-            {
-                "name": orchestrator.pricing_agent.name,
-                "id": orchestrator.pricing_agent.id,
-                "description": orchestrator.pricing_agent.description,
-                "role": "Agent 4: Deterministic Financial Decimal Arithmetic",
-            },
-            {
-                "name": orchestrator.dispatch_coordinator.name,
-                "id": orchestrator.dispatch_coordinator.id,
-                "description": orchestrator.dispatch_coordinator.description,
-                "role": "Agent 5: Courier Simulation, Tracking Generation & Dispatch",
-            },
+            _format_agent_entry(orchestrator.validation_agent, "Agent 1: Structural & Business Validation"),
+            _format_agent_entry(orchestrator.inventory_agent, "Agent 2: Atomic Inventory Reservation & Stock Intelligence"),
+            _format_agent_entry(orchestrator.fraud_agent, "Agent 3: Deterministic Risk Scoring & Contextual AI Analysis"),
+            _format_agent_entry(orchestrator.pricing_agent, "Agent 4: Deterministic Financial Decimal Arithmetic"),
+            _format_agent_entry(orchestrator.dispatch_coordinator, "Agent 5: Courier Simulation, Tracking Generation & Dispatch"),
+        ],
+        "extension_agents": [
+            _format_agent_entry(orchestrator.notification_agent, "Agent 6: Multi-Channel Customer Notification Drafting"),
         ],
     }
 
@@ -71,7 +65,7 @@ def get_agents_telemetry(db: Session = Depends(get_db)):
         held_or_warn = db.query(AgentLog).filter(AgentLog.agent_name == name, AgentLog.status.in_(["HELD", "WARNING"])).count()
         failures = db.query(AgentLog).filter(AgentLog.agent_name == name, AgentLog.status == "FAILED").count()
         avg_lat = db.query(func.avg(AgentLog.execution_time_ms)).filter(AgentLog.agent_name == name).scalar()
-        
+
         recent_logs = (
             db.query(AgentLog)
             .filter(AgentLog.agent_name == name)
@@ -101,8 +95,4 @@ def get_agents_telemetry(db: Session = Depends(get_db)):
             ],
         })
 
-    return {
-        "framework": "Microsoft Agent Framework",
-        "version": getattr(agent_framework, "__version__", "1.26.0"),
-        "agents": telemetry,
-    }
+    return {"agents": telemetry}

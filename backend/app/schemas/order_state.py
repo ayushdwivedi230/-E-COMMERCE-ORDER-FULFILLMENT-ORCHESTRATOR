@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
@@ -37,9 +37,22 @@ class AgentLogEntry(BaseModel):
     action: str
     status: str  # SUCCESS, FAILED, WARNING, HELD
     message: str
+    tool_name: Optional[str] = None
     execution_time_ms: int = 0
-    timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     details: Optional[Dict[str, Any]] = None
+
+
+class NotificationDraft(BaseModel):
+    channel: str = "EMAIL_AND_SMS"
+    recipient_email: Optional[str] = None
+    recipient_phone: Optional[str] = None
+    subject: str
+    body: str
+    sms_summary: str
+    status: str = "DRAFTED"  # DRAFTED (Preview Mode - not transmitted externally)
+    intent: str  # CONFIRMED, SUBSTITUTED, HELD_FRAUD, HELD_VALIDATION, HELD_INVENTORY
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 class SubstituteRecommendation(BaseModel):
@@ -81,6 +94,7 @@ class OrderState(BaseModel):
     fraud_status: str = "PENDING"       # PENDING, LOW_RISK, MEDIUM_RISK, HIGH_RISK_HELD
     pricing_status: str = "PENDING"     # PENDING, CALCULATED
     dispatch_status: str = "PENDING"    # PENDING, CONFIRMED, DISPATCHED, HELD
+    notification_status: str = "PENDING"  # PENDING, DRAFTED, SKIPPED
 
     # Quantitative & Financial State (Deterministic Decimals)
     fraud_score: float = 0.0
@@ -97,14 +111,17 @@ class OrderState(BaseModel):
     shipping_method: Optional[str] = "Standard"
     review_status: str = "PENDING"  # PENDING, APPROVED, FLAGGED_REVIEW, HELD_ESCALATED
 
-    # Contextual recommendations & AI reasoning
+    # Contextual recommendations, AI reasoning & Customer Notification
     substitute_recommendations: List[SubstituteRecommendation] = []
     backorder_proposals: List[BackorderProposal] = []
     fraud_risk_factors: List[str] = []
     fraud_ai_reasoning: Optional[str] = None
+    customer_notification_draft: Optional[NotificationDraft] = None
 
-    # Shared Audit Execution Logs
+    # Shared Audit Execution Logs (5 pipeline agents summary logs)
     agent_execution_logs: List[AgentLogEntry] = []
+    # Dedicated Microsoft Agent Framework Tool Invocations
+    tool_execution_logs: List[AgentLogEntry] = []
 
     @property
     def is_successful(self) -> bool:
@@ -146,14 +163,39 @@ class OrderState(BaseModel):
         message: str,
         execution_time_ms: int = 0,
         details: Optional[Dict[str, Any]] = None,
+        tool_name: Optional[str] = None,
     ) -> None:
-        """Helper to append an execution log entry to the shared state."""
+        """Helper to append an agent phase summary execution log entry to the shared state."""
         self.agent_execution_logs.append(
             AgentLogEntry(
                 agent_name=agent_name,
                 action=action,
                 status=status,
                 message=message,
+                tool_name=tool_name,
+                execution_time_ms=execution_time_ms,
+                details=details,
+            )
+        )
+
+    def add_tool_log(
+        self,
+        agent_name: str,
+        tool_name: str,
+        action: str,
+        status: str,
+        message: str,
+        execution_time_ms: int = 0,
+        details: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """Helper to append a granular tool execution log to the shared state."""
+        self.tool_execution_logs.append(
+            AgentLogEntry(
+                agent_name=agent_name,
+                action=action,
+                status=status,
+                message=message,
+                tool_name=tool_name,
                 execution_time_ms=execution_time_ms,
                 details=details,
             )

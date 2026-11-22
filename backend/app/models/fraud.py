@@ -1,7 +1,7 @@
 import datetime
 from sqlalchemy import Column, String, DateTime, Text, Numeric, ForeignKey
 from sqlalchemy.orm import relationship
-from backend.app.database import Base
+from backend.app.database import Base, utc_now
 
 
 class FraudReview(Base):
@@ -16,8 +16,8 @@ class FraudReview(Base):
     ai_explanation = Column(Text, nullable=True)  # Contextual reasoning
     decision = Column(String(30), nullable=False)  # APPROVED, FLAGGED, HELD
     reviewed_by = Column(String(100), default="SYSTEM_AGENT")
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
     # Relationships
     order = relationship("Order", back_populates="fraud_reviews")

@@ -29,6 +29,12 @@ engine = create_engine(
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+import datetime
+
+def utc_now() -> datetime.datetime:
+    """Return timezone-aware current UTC datetime."""
+    return datetime.datetime.now(datetime.timezone.utc)
+
 Base = declarative_base()
 
 

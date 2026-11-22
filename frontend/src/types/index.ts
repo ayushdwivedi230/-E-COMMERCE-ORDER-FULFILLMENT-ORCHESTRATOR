@@ -49,6 +49,18 @@ export interface BackorderProposal {
   estimated_restock_days: number;
 }
 
+export interface NotificationDraft {
+  channel: string;
+  recipient_email?: string;
+  recipient_phone?: string;
+  subject: string;
+  body: string;
+  sms_summary: string;
+  status: string;
+  intent: string;
+  created_at?: string;
+}
+
 export interface OrderState {
   order_id: string;
   customer_id: string;
@@ -79,6 +91,7 @@ export interface OrderState {
   backorder_proposals: BackorderProposal[];
   fraud_risk_factors: string[];
   fraud_ai_reasoning?: string;
+  customer_notification_draft?: NotificationDraft;
   agent_execution_logs: AgentLogEntry[];
 }
 
@@ -241,6 +254,7 @@ export interface FullOrderDetails {
     ai_explanation?: string;
     decision: string;
   }>;
+  notification_draft?: NotificationDraft;
 }
 
 export interface HeldOrder {
@@ -268,4 +282,5 @@ export interface HeldOrder {
     ai_explanation?: string;
     decision: string;
   }>;
+  notification_draft?: NotificationDraft;
 }

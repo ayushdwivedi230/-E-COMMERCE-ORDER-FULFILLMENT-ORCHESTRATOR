@@ -1,7 +1,7 @@
 import datetime
 from sqlalchemy import Column, String, DateTime, Text
 from sqlalchemy.orm import relationship
-from backend.app.database import Base
+from backend.app.database import Base, utc_now
 
 
 class Customer(Base):
@@ -14,8 +14,8 @@ class Customer(Base):
     address = Column(Text, nullable=False)
     billing_address = Column(Text, nullable=True)
     status = Column(String(20), default="ACTIVE")  # ACTIVE, FLAGGED, BLOCKED
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
     # Relationships
     orders = relationship("Order", back_populates="customer")

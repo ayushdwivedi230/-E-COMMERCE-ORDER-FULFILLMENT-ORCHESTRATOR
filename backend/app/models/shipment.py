@@ -1,7 +1,7 @@
 import datetime
 from sqlalchemy import Column, String, DateTime, Text, ForeignKey
 from sqlalchemy.orm import relationship
-from backend.app.database import Base
+from backend.app.database import Base, utc_now
 
 
 class Shipment(Base):
@@ -15,8 +15,8 @@ class Shipment(Base):
     status = Column(String(30), default="LABEL_CREATED", nullable=False)
     estimated_delivery = Column(DateTime, nullable=True)
     dispatch_notes = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
     # Relationships
     order = relationship("Order", back_populates="shipment")

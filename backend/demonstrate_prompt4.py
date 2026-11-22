@@ -44,6 +44,17 @@ def run_demonstrations():
     init_db()
     db = SessionLocal()
     seed_database(db)
+    # Clean up previous demonstration orders and child tables for clean rerun
+    from backend.app.models.order import Order, OrderItem
+    from backend.app.models.shipment import Shipment
+    from backend.app.models.fraud import FraudReview
+    from backend.app.models.agent_log import AgentLog
+    from backend.app.models.inventory import InventoryReservation
+
+    for tbl in [Shipment, FraudReview, AgentLog, InventoryReservation, OrderItem]:
+        db.query(tbl).filter(tbl.order_id.like("ORD-DEMO-%")).delete()
+    db.query(Order).filter(Order.id.like("ORD-DEMO-%")).delete()
+    db.commit()
     orchestrator = OrderFulfillmentOrchestrator()
 
     # --------------------------------------------------------------------------

@@ -4,6 +4,7 @@ from backend.app.agents.inventory_agent import InventoryAgent
 from backend.app.agents.fraud_check_agent import FraudCheckAgent
 from backend.app.agents.pricing_agent import PricingAgent
 from backend.app.agents.dispatch_coordinator import DispatchCoordinator
+from backend.app.agents.notification_agent import NotificationAgent
 
 __all__ = [
     "BaseOrchestratorAgent",
@@ -12,4 +13,5 @@ __all__ = [
     "FraudCheckAgent",
     "PricingAgent",
     "DispatchCoordinator",
+    "NotificationAgent",
 ]
