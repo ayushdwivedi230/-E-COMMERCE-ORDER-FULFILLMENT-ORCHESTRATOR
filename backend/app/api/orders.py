@@ -1,10 +1,12 @@
 import uuid
 import asyncio
+from decimal import Decimal
 from typing import List, Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from backend.app.database import get_db
 from backend.app.models.order import Order, OrderItem
+from backend.app.models.product import Product
 from backend.app.models.agent_log import AgentLog
 from backend.app.models.shipment import Shipment
 from backend.app.models.fraud import FraudReview
@@ -39,16 +41,20 @@ def process_order(
     """
     order_id = f"ORD-{uuid.uuid4().hex[:8].upper()}"
 
-    # Build initial items state
-    items_state: List[OrderItemState] = [
-        OrderItemState(
-            product_id="PENDING",
-            sku=item.sku,
-            name=item.sku,
-            quantity=item.quantity,
+    # Build initial items state, resolving product_id and metadata from catalog if available
+    items_state: List[OrderItemState] = []
+    for item in request.items:
+        prod = db.query(Product).filter(Product.sku == item.sku).first()
+        items_state.append(
+            OrderItemState(
+                product_id=prod.id if prod else None,
+                sku=item.sku,
+                name=prod.name if prod else item.sku,
+                quantity=item.quantity,
+                unit_price=prod.price if prod else Decimal("0.00"),
+                total_price=(prod.price * item.quantity) if prod else Decimal("0.00"),
+            )
         )
-        for item in request.items
-    ]
 
     order_state = OrderState(
         order_id=order_id,

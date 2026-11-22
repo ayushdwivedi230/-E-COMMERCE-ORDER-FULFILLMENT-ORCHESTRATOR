@@ -6,6 +6,7 @@ from typing import Optional, Tuple
 from sqlalchemy.orm import Session
 from backend.app.schemas.order_state import OrderState
 from backend.app.models.order import Order, OrderItem
+from backend.app.models.product import Product
 from backend.app.models.agent_log import AgentLog
 from backend.app.agents.validation_agent import ValidationAgent
 from backend.app.agents.inventory_agent import InventoryAgent
@@ -227,17 +228,31 @@ class OrderFulfillmentOrchestrator:
 
         # Add Order Items
         for item in order_state.items:
-            db_item = OrderItem(
-                id=f"ITEM-{uuid.uuid4().hex[:8].upper()}",
-                order_id=order_state.order_id,
-                product_id=item.product_id or "UNKNOWN",
-                sku=item.sku,
-                product_name=item.name or item.sku,
-                quantity=item.quantity,
-                unit_price=item.unit_price,
-                total_price=item.total_price,
-            )
-            db.add(db_item)
+            # Resolve product_id from database if missing or placeholder
+            real_product_id = item.product_id if item.product_id not in (None, "PENDING", "UNKNOWN") else None
+            if real_product_id is None:
+                prod = db.query(Product).filter(Product.sku == item.sku).first()
+                if prod:
+                    real_product_id = prod.id
+                    item.product_id = prod.id
+                    if not item.name or item.name == item.sku:
+                        item.name = prod.name
+                    if item.unit_price == Decimal("0.00"):
+                        item.unit_price = prod.price
+                        item.total_price = prod.price * item.quantity
+
+            if real_product_id:
+                db_item = OrderItem(
+                    id=f"ITEM-{uuid.uuid4().hex[:8].upper()}",
+                    order_id=order_state.order_id,
+                    product_id=real_product_id,
+                    sku=item.sku,
+                    product_name=item.name or item.sku,
+                    quantity=item.quantity,
+                    unit_price=item.unit_price,
+                    total_price=item.total_price,
+                )
+                db.add(db_item)
 
         db.commit()
         db.refresh(db_order)

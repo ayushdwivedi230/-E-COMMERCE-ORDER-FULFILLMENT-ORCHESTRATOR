@@ -65,4 +65,11 @@ def init_db() -> None:
         agent_log
     )
     Base.metadata.create_all(bind=engine)
+    try:
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE order_items ALTER COLUMN product_id DROP NOT NULL;"))
+            conn.commit()
+    except Exception:
+        pass
     logger.info("Database tables initialized successfully.")

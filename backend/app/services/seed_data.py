@@ -9,125 +9,126 @@ from backend.app.models.order import OrderHistory
 def seed_database(db: Session) -> None:
     """Seed the database with sample customers, products, and order history."""
 
-    # 1. Seed Products if empty
-    if db.query(Product).count() == 0:
-        products = [
-            Product(
-                id="PROD-001",
-                sku="KB-MECH-RGB",
-                name="Pro Mechanical RGB Gaming Keyboard",
-                description="Tactile mechanical switches with per-key RGB backlighting.",
-                price=Decimal("99.99"),
-                stock_quantity=45,
-                substitute_sku="KB-ERG-WRL",
-                category="Peripherals",
-                is_active=True,
-            ),
-            Product(
-                id="PROD-002",
-                sku="KB-ERG-WRL",
-                name="Ergonomic Split Wireless Keyboard",
-                description="Cushioned palm rest and split layout for natural posture.",
-                price=Decimal("89.99"),
-                stock_quantity=30,
-                substitute_sku="KB-MECH-RGB",
-                category="Peripherals",
-                is_active=True,
-            ),
-            Product(
-                id="PROD-003",
-                sku="MON-4K-27",
-                name="Ultra HD 27-inch 4K Designer Monitor",
-                description="IPS panel, 99% sRGB color accuracy, USB-C 65W power delivery.",
-                price=Decimal("349.99"),
-                stock_quantity=18,
-                substitute_sku="MON-CRV-32",
-                category="Displays",
-                is_active=True,
-            ),
-            Product(
-                id="PROD-004",
-                sku="MON-CRV-32",
-                name="Curved 32-inch 165Hz Ultrawide Monitor",
-                description="Immersive 1500R curvature with high refresh rate gaming display.",
-                price=Decimal("399.99"),
-                stock_quantity=0,  # Zero stock to test substitute recommendations & backorders!
-                substitute_sku="MON-4K-27",
-                category="Displays",
-                is_active=True,
-            ),
-            Product(
-                id="PROD-005",
-                sku="HUB-USBC-8P",
-                name="8-in-1 Aluminium USB-C Multiport Hub",
-                description="Dual 4K HDMI, Gigabit Ethernet, 100W PD pass-through.",
-                price=Decimal("49.99"),
-                stock_quantity=120,
-                substitute_sku=None,
-                category="Accessories",
-                is_active=True,
-            ),
-            Product(
-                id="PROD-006",
-                sku="AUD-NC-HD7",
-                name="Audiophile Noise-Cancelling Wireless Headphones",
-                description="Hybrid active noise cancellation with 40-hour battery life.",
-                price=Decimal("199.99"),
-                stock_quantity=4,  # Low stock
-                substitute_sku=None,
-                category="Audio",
-                is_active=True,
-            ),
-        ]
-        db.add_all(products)
-        db.commit()
+    # 1. Seed Products if missing
+    products = [
+        Product(
+            id="PROD-001",
+            sku="KB-MECH-RGB",
+            name="Pro Mechanical RGB Gaming Keyboard",
+            description="Tactile mechanical switches with per-key RGB backlighting.",
+            price=Decimal("99.99"),
+            stock_quantity=45,
+            substitute_sku="KB-ERG-WRL",
+            category="Peripherals",
+            is_active=True,
+        ),
+        Product(
+            id="PROD-002",
+            sku="KB-ERG-WRL",
+            name="Ergonomic Split Wireless Keyboard",
+            description="Cushioned palm rest and split layout for natural posture.",
+            price=Decimal("89.99"),
+            stock_quantity=30,
+            substitute_sku="KB-MECH-RGB",
+            category="Peripherals",
+            is_active=True,
+        ),
+        Product(
+            id="PROD-003",
+            sku="MON-4K-27",
+            name="Ultra HD 27-inch 4K Designer Monitor",
+            description="IPS panel, 99% sRGB color accuracy, USB-C 65W power delivery.",
+            price=Decimal("349.99"),
+            stock_quantity=18,
+            substitute_sku="MON-CRV-32",
+            category="Displays",
+            is_active=True,
+        ),
+        Product(
+            id="PROD-004",
+            sku="MON-CRV-32",
+            name="Curved 32-inch 165Hz Ultrawide Monitor",
+            description="Immersive 1500R curvature with high refresh rate gaming display.",
+            price=Decimal("399.99"),
+            stock_quantity=0,  # Zero stock to test substitute recommendations & backorders!
+            substitute_sku="MON-4K-27",
+            category="Displays",
+            is_active=True,
+        ),
+        Product(
+            id="PROD-005",
+            sku="HUB-USBC-8P",
+            name="8-in-1 Aluminium USB-C Multiport Hub",
+            description="Dual 4K HDMI, Gigabit Ethernet, 100W PD pass-through.",
+            price=Decimal("49.99"),
+            stock_quantity=120,
+            substitute_sku=None,
+            category="Accessories",
+            is_active=True,
+        ),
+        Product(
+            id="PROD-006",
+            sku="AUD-NC-HD7",
+            name="Audiophile Noise-Cancelling Wireless Headphones",
+            description="Hybrid active noise cancellation with 40-hour battery life.",
+            price=Decimal("199.99"),
+            stock_quantity=4,  # Low stock
+            substitute_sku=None,
+            category="Audio",
+            is_active=True,
+        ),
+    ]
+    for p in products:
+        if not db.query(Product).filter(Product.id == p.id).first():
+            db.add(p)
+    db.commit()
 
-    # 2. Seed Customers if empty
-    if db.query(Customer).count() == 0:
-        customers = [
-            Customer(
-                id="CUST-001",
-                name="John Verified",
-                email="john.verified@example.com",
-                phone="+1-555-0101",
-                address="742 Evergreen Terrace, Springfield, OR 97477, USA",
-                billing_address="742 Evergreen Terrace, Springfield, OR 97477, USA",
-                status="ACTIVE",
-            ),
-            Customer(
-                id="CUST-002",
-                name="Sarah Flagged",
-                email="sarah.flagged@example.com",
-                phone="+1-555-0102",
-                address="1200 Market Street, San Francisco, CA 94102, USA",
-                billing_address="450 Lexington Ave, New York, NY 10017, USA",  # Billing address mismatch
-                status="FLAGGED",
-            ),
-            Customer(
-                id="CUST-003",
-                name="Alex Risky",
-                email="alex.risky99@disposablemail.org",
-                phone="+1-555-0199",
-                address="PO Box 9999, Unknown Island, FL 33040, USA",
-                billing_address="PO Box 111, Anchorage, AK 99501, USA",
-                status="FLAGGED",
-            ),
-            Customer(
-                id="CUST-004",
-                name="Emma Newcomer",
-                email="emma.new@university.edu",
-                phone="+1-555-0104",
-                address="100 University Ave, Cambridge, MA 02138, USA",
-                billing_address="100 University Ave, Cambridge, MA 02138, USA",
-                status="ACTIVE",
-            ),
-        ]
-        db.add_all(customers)
-        db.commit()
+    # 2. Seed Customers if missing
+    customers = [
+        Customer(
+            id="CUST-001",
+            name="John Verified",
+            email="john.verified@example.com",
+            phone="+1-555-0101",
+            address="742 Evergreen Terrace, Springfield, OR 97477, USA",
+            billing_address="742 Evergreen Terrace, Springfield, OR 97477, USA",
+            status="ACTIVE",
+        ),
+        Customer(
+            id="CUST-002",
+            name="Sarah Flagged",
+            email="sarah.flagged@example.com",
+            phone="+1-555-0102",
+            address="1200 Market Street, San Francisco, CA 94102, USA",
+            billing_address="450 Lexington Ave, New York, NY 10017, USA",  # Billing address mismatch
+            status="FLAGGED",
+        ),
+        Customer(
+            id="CUST-003",
+            name="Alex Risky",
+            email="alex.risky99@disposablemail.org",
+            phone="+1-555-0199",
+            address="PO Box 9999, Unknown Island, FL 33040, USA",
+            billing_address="PO Box 111, Anchorage, AK 99501, USA",
+            status="FLAGGED",
+        ),
+        Customer(
+            id="CUST-004",
+            name="Emma Newcomer",
+            email="emma.new@university.edu",
+            phone="+1-555-0104",
+            address="100 University Ave, Cambridge, MA 02138, USA",
+            billing_address="100 University Ave, Cambridge, MA 02138, USA",
+            status="ACTIVE",
+        ),
+    ]
+    for c in customers:
+        if not db.query(Customer).filter(Customer.id == c.id).first():
+            db.add(c)
+    db.commit()
 
-    # 3. Seed Order History for Customers if empty
-    if db.query(OrderHistory).count() == 0:
-        history_records = [
+    # 3. Seed Order History for Customers if missing
+    history_records = [
             # CUST-001: Model Good Customer (high volume, 0 suspicious, clean record)
             OrderHistory(
                 id="HIST-001",
@@ -224,5 +225,7 @@ def seed_database(db: Session) -> None:
 
             # CUST-004: Brand New Customer (0 past orders)
         ]
-        db.add_all(history_records)
-        db.commit()
+    for h in history_records:
+        if not db.query(OrderHistory).filter(OrderHistory.id == h.id).first():
+            db.add(h)
+    db.commit()

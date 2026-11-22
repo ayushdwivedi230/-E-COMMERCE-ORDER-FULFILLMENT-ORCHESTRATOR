@@ -5,9 +5,9 @@ from pydantic import BaseModel, Field
 
 
 class OrderItemState(BaseModel):
-    product_id: str
+    product_id: Optional[str] = None
     sku: str
-    name: str
+    name: str = ""
     quantity: int = Field(gt=0, description="Quantity must be greater than 0")
     unit_price: Decimal = Field(default=Decimal("0.00"), ge=Decimal("0.00"))
     total_price: Decimal = Field(default=Decimal("0.00"), ge=Decimal("0.00"))
