@@ -20,6 +20,12 @@ if db_url.startswith("sqlite"):
         abs_path = os.path.abspath(raw_path).replace("\\", "/")
         db_url = f"sqlite:///{abs_path}"
 
+if db_url.startswith("postgresql://"):
+    try:
+        import psycopg  # noqa: F401
+    except ImportError:
+        db_url = db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+
 engine = create_engine(
     db_url,
     connect_args=connect_args,

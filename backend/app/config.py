@@ -32,6 +32,12 @@ class Settings(BaseSettings):
         # Standardize PostgreSQL URI scheme for SQLAlchemy compatibility
         if url.startswith("postgres://"):
             url = url.replace("postgres://", "postgresql://", 1)
+        if url.startswith("postgresql://"):
+            try:
+                import psycopg  # noqa: F401
+            except ImportError:
+                # Fallback to psycopg2 if psycopg v3 is not installed
+                url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
         return url
     
     # CORS
