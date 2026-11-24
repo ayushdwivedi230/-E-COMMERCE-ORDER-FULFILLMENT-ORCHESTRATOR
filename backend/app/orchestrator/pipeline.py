@@ -16,6 +16,11 @@ from backend.app.agents.dispatch_coordinator import DispatchCoordinator
 from backend.app.agents.notification_agent import NotificationAgent
 from backend.app.services.inventory_service import InventoryService
 from backend.app.services.customer_memory import CustomerMemoryService
+from backend.app.services.catalog_service import (
+    PLACEHOLDER_PRODUCT_IDS,
+    quantize_currency,
+    resolve_product_by_sku,
+)
 from backend.app.services.run_logger import AppendOnlyRunLogger
 
 
@@ -57,27 +62,28 @@ class OrderFulfillmentOrchestrator:
         Includes top-level transaction safety and rollback on system exceptions.
         """
         try:
-            # Step 0: Ensure Order record exists in DB in PENDING status, and guard against duplicate processing
-            db_order = self._initialize_order_record(order_state, db)
-            if db_order is None:
-                # Duplicate order detected and blocked
+            # Step 0a: Guard against duplicate order submissions before validation/persistence
+            existing_order = self._check_duplicate_order(order_state, db)
+            if existing_order == "DUPLICATE":
                 self.notification_agent.process_notification(order_state)
                 AppendOnlyRunLogger.log_order_run(order_state)
                 return order_state
 
-            # STAGE 1: Validation Agent (Must stop processing if invalid or payment failed)
+            # STAGE 1: Validation Agent (Reject unknown SKUs, inactive products, invalid fields BEFORE persisting)
             valid = self.validation_agent.validate_order(order_state, db)
             if not valid:
-                self._route_to_hold(
-                    order_state=order_state,
-                    db=db,
-                    db_order=db_order,
-                    reason=order_state.hold_reason or "Order failed structural validation or payment check.",
-                    stage="VALIDATION_FAILED",
-                )
+                order_state.validation_status = "FAILED"
+                order_state.dispatch_status = "HELD"
+                if not order_state.hold_reason:
+                    order_state.hold_reason = "Order failed structural validation or catalog check."
                 self.notification_agent.process_notification(order_state)
-                self._persist_agent_logs(order_state, db)
-                db.commit()
+                AppendOnlyRunLogger.log_order_run(order_state)
+                return order_state
+
+            # Step 0b: Persist Order & verified OrderItems only after catalog & validation invariants pass
+            db_order = self._initialize_order_record(order_state, db)
+            if db_order is None:
+                self.notification_agent.process_notification(order_state)
                 AppendOnlyRunLogger.log_order_run(order_state)
                 return order_state
 
@@ -196,8 +202,28 @@ class OrderFulfillmentOrchestrator:
             AppendOnlyRunLogger.log_order_run(order_state)
             return order_state
 
+    def _check_duplicate_order(self, order_state: OrderState, db: Session) -> Optional[str]:
+        """Reject duplicate order IDs before validation or order creation."""
+        existing_order = db.query(Order).filter(Order.id == order_state.order_id).first()
+        if existing_order and existing_order.status in ["DISPATCHED", "HELD", "PROCESSING"]:
+            order_state.dispatch_status = "REJECTED_DUPLICATE"
+            order_state.hold_reason = (
+                f"Duplicate Order Error: Order '{order_state.order_id}' has already been processed "
+                f"(Current status: {existing_order.status}). Duplicate execution aborted."
+            )
+            order_state.add_log(
+                agent_name="OrderOrchestrator",
+                action="DuplicateOrderPrevention",
+                status="FAILED",
+                message=f"Duplicate order submission rejected for ID '{order_state.order_id}'.",
+                execution_time_ms=0,
+                details={"existing_status": existing_order.status},
+            )
+            return "DUPLICATE"
+        return None
+
     def _initialize_order_record(self, order_state: OrderState, db: Session) -> Optional[Order]:
-        """Create or update database Order row with duplicate processing prevention."""
+        """Create or update database Order row after validating catalog items strictly."""
         existing_order = db.query(Order).filter(Order.id == order_state.order_id).first()
         if existing_order:
             if existing_order.status in ["DISPATCHED", "HELD", "PROCESSING"]:
@@ -217,6 +243,35 @@ class OrderFulfillmentOrchestrator:
                 return None
             return existing_order
 
+        if not order_state.items:
+            raise ValueError("ORDER_EMPTY: Cannot persist order with no items.")
+
+        # Verify all items against the authoritative catalog BEFORE inserting Order or OrderItem
+        resolved_rows = []
+        for item in order_state.items:
+            if item.quantity <= 0:
+                raise ValueError(f"INVALID_QUANTITY: Invalid quantity {item.quantity} for SKU '{item.sku}'.")
+
+            prod = resolve_product_by_sku(db, item.sku)
+            if not prod:
+                raise ValueError(f"PRODUCT_NOT_FOUND: Product with SKU '{item.sku}' does not exist in catalog.")
+            if not prod.is_active:
+                raise ValueError(f"PRODUCT_INACTIVE: Product with SKU '{item.sku}' is inactive.")
+            if not prod.id or prod.id.strip().upper() in PLACEHOLDER_PRODUCT_IDS:
+                raise ValueError(f"INVALID_PRODUCT_ID: Resolved product for SKU '{item.sku}' has invalid ID '{prod.id}'.")
+            if prod.price is None or Decimal(str(prod.price)) <= Decimal("0.00"):
+                raise ValueError(f"INVALID_CATALOG_PRICE: Product '{item.sku}' has invalid price.")
+
+            unit_price = quantize_currency(Decimal(str(prod.price)))
+            total_price = quantize_currency(unit_price * Decimal(str(item.quantity)))
+
+            item.product_id = prod.id
+            item.sku = prod.sku
+            item.name = prod.name
+            item.unit_price = unit_price
+            item.total_price = total_price
+            resolved_rows.append((prod, item))
+
         db_order = Order(
             id=order_state.order_id,
             customer_id=order_state.customer_id,
@@ -234,33 +289,18 @@ class OrderFulfillmentOrchestrator:
         )
         db.add(db_order)
 
-        # Add Order Items
-        for item in order_state.items:
-            # Resolve product_id from database if missing or placeholder
-            real_product_id = item.product_id if item.product_id not in (None, "PENDING", "UNKNOWN") else None
-            if real_product_id is None:
-                prod = db.query(Product).filter(Product.sku == item.sku).first()
-                if prod:
-                    real_product_id = prod.id
-                    item.product_id = prod.id
-                    if not item.name or item.name == item.sku:
-                        item.name = prod.name
-                    if item.unit_price == Decimal("0.00"):
-                        item.unit_price = prod.price
-                        item.total_price = prod.price * item.quantity
-
-            if real_product_id:
-                db_item = OrderItem(
-                    id=f"ITEM-{uuid.uuid4().hex[:8].upper()}",
-                    order_id=order_state.order_id,
-                    product_id=real_product_id,
-                    sku=item.sku,
-                    product_name=item.name or item.sku,
-                    quantity=item.quantity,
-                    unit_price=item.unit_price,
-                    total_price=item.total_price,
-                )
-                db.add(db_item)
+        for prod, item in resolved_rows:
+            db_item = OrderItem(
+                id=f"ITEM-{uuid.uuid4().hex[:8].upper()}",
+                order_id=order_state.order_id,
+                product_id=prod.id,
+                sku=prod.sku,
+                product_name=prod.name,
+                quantity=item.quantity,
+                unit_price=item.unit_price,
+                total_price=item.total_price,
+            )
+            db.add(db_item)
 
         db.commit()
         db.refresh(db_order)

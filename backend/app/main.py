@@ -21,7 +21,7 @@ logging.basicConfig(
 logger = logging.getLogger("ecommerce")
 
 
-BUILD_VERSION = "v2.1.0-fix-product-id"  # Render deploy verification tag
+BUILD_VERSION = "v2.2.0-catalog-invariants"  # Render deploy verification tag
 
 
 @asynccontextmanager

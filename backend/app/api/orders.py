@@ -14,7 +14,7 @@ from backend.app.schemas.order import ProcessOrderRequest, OrderSummaryResponse
 from backend.app.schemas.order_state import OrderState, OrderItemState
 from backend.app.orchestrator.pipeline import OrderFulfillmentOrchestrator
 from backend.app.services.inventory_service import InventoryService
-from backend.app.services.seed_data import seed_database
+from backend.app.services.catalog_service import resolve_product_by_sku, quantize_currency
 from backend.app.api.websocket import ws_manager
 
 router = APIRouter(prefix="/api/orders", tags=["Orders"])
@@ -42,24 +42,34 @@ def process_order(
     """
     order_id = f"ORD-{uuid.uuid4().hex[:8].upper()}"
 
-    # Ensure catalog has baseline products seeded if database was empty
-    if db.query(Product).count() == 0:
-        seed_database(db)
-
-    # Build initial items state, resolving product_id and metadata from catalog if available
+    # Build initial items state from authoritative catalog (never fabricate PENDING or placeholder IDs)
     items_state: List[OrderItemState] = []
     for item in request.items:
-        prod = db.query(Product).filter(Product.sku == item.sku).first()
-        items_state.append(
-            OrderItemState(
-                product_id=prod.id if prod else None,
-                sku=item.sku,
-                name=prod.name if prod else item.sku,
-                quantity=item.quantity,
-                unit_price=prod.price if prod else Decimal("0.00"),
-                total_price=(prod.price * item.quantity) if prod else Decimal("0.00"),
+        prod = resolve_product_by_sku(db, item.sku)
+        if prod and prod.is_active and prod.price is not None and Decimal(str(prod.price)) > Decimal("0.00"):
+            unit_price = quantize_currency(Decimal(str(prod.price)))
+            total_price = quantize_currency(unit_price * Decimal(str(item.quantity)))
+            items_state.append(
+                OrderItemState(
+                    product_id=prod.id,
+                    sku=prod.sku,
+                    name=prod.name,
+                    quantity=item.quantity,
+                    unit_price=unit_price,
+                    total_price=total_price,
+                )
             )
-        )
+        else:
+            items_state.append(
+                OrderItemState(
+                    product_id=None,
+                    sku=item.sku,
+                    name=item.sku,
+                    quantity=item.quantity,
+                    unit_price=Decimal("0.00"),
+                    total_price=Decimal("0.00"),
+                )
+            )
 
     order_state = OrderState(
         order_id=order_id,
@@ -268,17 +278,27 @@ def override_held_order(
         raise HTTPException(status_code=400, detail=f"Order is not in HELD status (current: {order.status})")
 
     items = db.query(OrderItem).filter(OrderItem.order_id == order_id).all()
-    items_state = [
-        OrderItemState(
-            product_id=i.product_id,
-            sku=i.sku,
-            name=i.product_name,
-            quantity=i.quantity,
-            unit_price=i.unit_price,
-            total_price=i.total_price,
+    items_state = []
+    for i in items:
+        prod = resolve_product_by_sku(db, i.sku)
+        resolved_id = i.product_id if i.product_id and i.product_id not in ("PENDING", "UNKNOWN") else (prod.id if prod else None)
+        if not resolved_id:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot override order {order_id}: item '{i.sku}' has no valid catalog product reference.",
+            )
+        unit_price = quantize_currency(Decimal(str(prod.price))) if prod and prod.price else quantize_currency(Decimal(str(i.unit_price)))
+        total_price = quantize_currency(unit_price * Decimal(str(i.quantity)))
+        items_state.append(
+            OrderItemState(
+                product_id=resolved_id,
+                sku=i.sku,
+                name=i.product_name,
+                quantity=i.quantity,
+                unit_price=unit_price,
+                total_price=total_price,
+            )
         )
-        for i in items
-    ]
 
     order_state = OrderState(
         order_id=order.id,

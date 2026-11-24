@@ -34,11 +34,7 @@ from backend.app.models.fraud import FraudReview
 from backend.app.models.shipment import Shipment
 from backend.app.schemas.customer import CustomerHistoryStats, OrderHistoryEntry
 from backend.app.config import settings
-
-
-def quantize_currency(amount: Decimal) -> Decimal:
-    """Helper to round decimals strictly to 2 decimal places using standard financial round-half-up."""
-    return amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+from backend.app.services.catalog_service import quantize_currency, validate_and_resolve_order_items
 
 
 # ==============================================================================
@@ -97,45 +93,7 @@ def validate_catalog_and_quantities(
     items: List[OrderItemState]
 ) -> Dict[str, Any]:
     """Verify each requested SKU against the product catalog and validate quantity bounds."""
-    if not items or len(items) == 0:
-        return {"valid": False, "errors": ["Order must contain at least one item."], "warnings": []}
-
-    errors: List[str] = []
-    warnings: List[str] = []
-    validated_items: List[Dict[str, Any]] = []
-
-    for item in items:
-        if item.quantity <= 0:
-            errors.append(f"Invalid quantity {item.quantity} for item '{item.sku}'. Must be > 0.")
-        elif item.quantity > 100:
-            warnings.append(f"Unusually large quantity ({item.quantity}) for item '{item.sku}'.")
-
-        product = db.query(Product).filter(Product.sku == item.sku).first()
-        if not product:
-            errors.append(f"Product with SKU '{item.sku}' does not exist in catalog.")
-        elif not product.is_active:
-            errors.append(f"Product with SKU '{item.sku}' is inactive and cannot be ordered.")
-        else:
-            item.product_id = product.id
-            item.name = product.name
-            item.unit_price = Decimal(str(product.price))
-            item.total_price = quantize_currency(item.unit_price * Decimal(str(item.quantity)))
-            validated_items.append({
-                "sku": item.sku,
-                "product_id": product.id,
-                "name": product.name,
-                "quantity": item.quantity,
-                "unit_price": str(item.unit_price),
-                "total_price": str(item.total_price),
-            })
-
-    return {
-        "valid": len(errors) == 0,
-        "errors": errors,
-        "warnings": warnings,
-        "item_count": len(items),
-        "validated_items": validated_items,
-    }
+    return validate_and_resolve_order_items(db, items)
 
 
 @tool(

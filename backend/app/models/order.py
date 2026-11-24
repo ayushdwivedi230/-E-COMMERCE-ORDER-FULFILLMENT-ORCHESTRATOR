@@ -47,7 +47,7 @@ class OrderItem(Base):
 
     id = Column(String(50), primary_key=True, index=True)
     order_id = Column(String(50), ForeignKey("orders.id"), nullable=False, index=True)
-    product_id = Column(String(50), ForeignKey("products.id"), nullable=True, index=True)
+    product_id = Column(String(50), ForeignKey("products.id"), nullable=False, index=True)
     sku = Column(String(50), nullable=False)
     product_name = Column(String(200), nullable=False)
     quantity = Column(Integer, nullable=False)

@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from backend.app.agents.base import BaseOrchestratorAgent
 from backend.app.schemas.order_state import OrderState
 from backend.app.models.product import Product
+from backend.app.services.catalog_service import quantize_currency, resolve_product_by_sku
 from backend.app.agents.tools import (
     calculate_subtotal_and_discounts,
     calculate_tax_and_shipping,
@@ -58,12 +59,24 @@ class PricingAgent(BaseOrchestratorAgent):
             )
             return False
 
-        # Ensure unit prices are populated from catalog
+        # Enforce authoritative catalog unit prices using Decimal arithmetic
         for item in order_state.items:
-            if item.unit_price <= Decimal("0.00"):
-                product = db.query(Product).filter(Product.sku == item.sku).first()
-                if product:
-                    item.unit_price = Decimal(str(product.price))
+            product = resolve_product_by_sku(db, item.sku)
+            if product and product.price is not None and Decimal(str(product.price)) > Decimal("0.00"):
+                item.product_id = product.id
+                item.unit_price = quantize_currency(Decimal(str(product.price)))
+                item.total_price = quantize_currency(item.unit_price * Decimal(str(item.quantity)))
+            elif item.unit_price <= Decimal("0.00"):
+                order_state.pricing_status = "FAILED"
+                order_state.hold_reason = f"INVALID_CATALOG_PRICE: Cannot price SKU '{item.sku}' without a valid catalog price."
+                self.record_agent_log(
+                    order_state,
+                    action="PricingCalculation",
+                    status="FAILED",
+                    message=order_state.hold_reason,
+                    start_time=start_time,
+                )
+                return False
 
         # TOOL 1: Calculate Subtotal and Discounts
         t1_start = time.time()
