@@ -172,14 +172,22 @@ class OrderFulfillmentOrchestrator:
             except Exception:
                 pass
             order_state.dispatch_status = "FAILED"
-            order_state.hold_reason = f"System Error / Database Exception: {str(exc)}"
+            exc_str = str(exc)
+            # Sanitize technical traceback: avoid leaking raw SQL queries, credentials, or internal schema
+            if "ForeignKeyViolation" in exc_str or "foreign key constraint" in exc_str:
+                clean_msg = "Catalog Integrity Error: One or more requested items could not be linked to valid product records."
+            elif "IntegrityError" in exc_str or "NOT NULL constraint" in exc_str:
+                clean_msg = "Database Constraint Error: Required order fields or relationships are missing."
+            else:
+                clean_msg = f"Internal fulfillment error ({type(exc).__name__})."
+            order_state.hold_reason = f"System Error / Database Exception: {clean_msg}"
             order_state.add_log(
                 agent_name="OrderOrchestrator",
                 action="PipelineExecutionRecovery",
                 status="FAILED",
-                message=f"Pipeline aborted due to unexpected error: {str(exc)}",
+                message=f"Pipeline aborted: {clean_msg}",
                 execution_time_ms=0,
-                details={"exception": str(exc)},
+                details={"error_type": type(exc).__name__, "summary": clean_msg},
             )
             try:
                 self.notification_agent.process_notification(order_state)
@@ -270,6 +278,19 @@ class OrderFulfillmentOrchestrator:
         InventoryService.release_reservations(db, order_state.order_id)
         order_state.dispatch_status = "HELD"
         order_state.hold_reason = reason
+
+        if stage == "VALIDATION_FAILED":
+            order_state.validation_status = "FAILED"
+        elif stage == "INVENTORY_HELD":
+            if order_state.substitute_recommendations:
+                order_state.inventory_status = "SUBSTITUTE_RECOMMENDED"
+            else:
+                order_state.inventory_status = "INSUFFICIENT_STOCK"
+        elif stage == "FRAUD_HELD":
+            order_state.fraud_status = "HIGH_RISK_HELD"
+        elif stage == "PRICING_FAILED":
+            order_state.pricing_status = "FAILED"
+
         db_order.status = "HELD"
         db_order.hold_reason = reason
         db_order.fraud_score = order_state.fraud_score

@@ -14,6 +14,7 @@ from backend.app.schemas.order import ProcessOrderRequest, OrderSummaryResponse
 from backend.app.schemas.order_state import OrderState, OrderItemState
 from backend.app.orchestrator.pipeline import OrderFulfillmentOrchestrator
 from backend.app.services.inventory_service import InventoryService
+from backend.app.services.seed_data import seed_database
 from backend.app.api.websocket import ws_manager
 
 router = APIRouter(prefix="/api/orders", tags=["Orders"])
@@ -40,6 +41,10 @@ def process_order(
     or a held order with the reason.
     """
     order_id = f"ORD-{uuid.uuid4().hex[:8].upper()}"
+
+    # Ensure catalog has baseline products seeded if database was empty
+    if db.query(Product).count() == 0:
+        seed_database(db)
 
     # Build initial items state, resolving product_id and metadata from catalog if available
     items_state: List[OrderItemState] = []

@@ -113,6 +113,8 @@ def validate_catalog_and_quantities(
         product = db.query(Product).filter(Product.sku == item.sku).first()
         if not product:
             errors.append(f"Product with SKU '{item.sku}' does not exist in catalog.")
+        elif not product.is_active:
+            errors.append(f"Product with SKU '{item.sku}' is inactive and cannot be ordered.")
         else:
             item.product_id = product.id
             item.name = product.name
@@ -264,7 +266,10 @@ def reserve_stock_atomic(
     reservation_ids = []
 
     for item in items:
-        product = db.query(Product).filter(Product.sku == item.sku).first()
+        query = db.query(Product).filter(Product.sku == item.sku)
+        if hasattr(db, "bind") and db.bind and db.bind.dialect.name == "postgresql":
+            query = query.with_for_update(nowait=False)
+        product = query.first()
         if product:
             product.stock_quantity -= item.quantity
             res_id = f"RES-{uuid.uuid4().hex[:8].upper()}"

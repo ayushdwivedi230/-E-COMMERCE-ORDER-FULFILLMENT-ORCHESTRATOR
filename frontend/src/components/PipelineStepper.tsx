@@ -1,5 +1,5 @@
 import React from "react";
-import { CheckCircle2, AlertOctagon, Clock, ShieldAlert, Cpu } from "lucide-react";
+import { CheckCircle2, AlertOctagon, Clock, ShieldAlert, Cpu, MinusCircle } from "lucide-react";
 import type { OrderState } from "../types";
 
 interface PipelineStepperProps {
@@ -22,7 +22,11 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({ orderState, is
       status: orderState
         ? orderState.validation_status === "PASSED"
           ? "success"
-          : "error"
+          : orderState.validation_status === "FAILED"
+          ? "error"
+          : isProcessing
+          ? "active"
+          : "pending"
         : isProcessing
         ? "active"
         : "idle",
@@ -37,7 +41,13 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({ orderState, is
           ? "success"
           : orderState.inventory_status === "SKIPPED"
           ? "skipped"
-          : "error"
+          : orderState.inventory_status === "INSUFFICIENT_STOCK" || orderState.inventory_status === "BACKORDER_PROPOSED"
+          ? "held"
+          : orderState.validation_status === "FAILED"
+          ? "skipped"
+          : orderState.inventory_status === "FAILED"
+          ? "error"
+          : "pending"
         : "idle",
       timeMs: getAgentStepTime("InventoryAgent"),
     },
@@ -47,12 +57,16 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({ orderState, is
       role: "Deterministic Scoring & Memory",
       status: orderState
         ? orderState.fraud_status === "HIGH_RISK_HELD"
-          ? "error"
+          ? "held"
           : orderState.fraud_status === "MEDIUM_RISK"
           ? "warning"
           : orderState.fraud_status === "LOW_RISK"
           ? "success"
-          : "skipped"
+          : orderState.fraud_status === "SKIPPED" || orderState.validation_status === "FAILED" || orderState.inventory_status === "INSUFFICIENT_STOCK"
+          ? "skipped"
+          : orderState.fraud_status === "FAILED"
+          ? "error"
+          : "pending"
         : "idle",
       timeMs: getAgentStepTime("FraudCheckAgent"),
       score: orderState ? orderState.fraud_score : null,
@@ -64,7 +78,11 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({ orderState, is
       status: orderState
         ? orderState.pricing_status === "CALCULATED"
           ? "success"
-          : "skipped"
+          : orderState.pricing_status === "SKIPPED" || orderState.dispatch_status === "HELD" || orderState.validation_status === "FAILED" || orderState.inventory_status === "INSUFFICIENT_STOCK"
+          ? "skipped"
+          : orderState.pricing_status === "FAILED"
+          ? "error"
+          : "pending"
         : "idle",
       timeMs: getAgentStepTime("PricingAgent"),
     },
@@ -77,7 +95,11 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({ orderState, is
           ? "success"
           : orderState.dispatch_status === "HELD"
           ? "held"
-          : "idle"
+          : orderState.dispatch_status === "SKIPPED" || orderState.validation_status === "FAILED"
+          ? "skipped"
+          : orderState.dispatch_status === "FAILED"
+          ? "error"
+          : "pending"
         : "idle",
       timeMs: getAgentStepTime("DispatchCoordinator"),
     },
@@ -110,15 +132,21 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({ orderState, is
           if (step.status === "success") {
             badgeColor = "border-emerald-500/30 bg-emerald-950/30 text-emerald-300";
             icon = <CheckCircle2 className="w-4 h-4 text-emerald-400" />;
-          } else if (step.status === "error" || step.status === "held") {
+          } else if (step.status === "error") {
             badgeColor = "border-rose-500/40 bg-rose-950/40 text-rose-300";
             icon = <AlertOctagon className="w-4 h-4 text-rose-400" />;
+          } else if (step.status === "held") {
+            badgeColor = "border-amber-500/40 bg-amber-950/40 text-amber-300";
+            icon = <ShieldAlert className="w-4 h-4 text-amber-400" />;
           } else if (step.status === "warning") {
             badgeColor = "border-amber-500/40 bg-amber-950/40 text-amber-300";
             icon = <ShieldAlert className="w-4 h-4 text-amber-400" />;
           } else if (step.status === "active") {
             badgeColor = "border-indigo-500/50 bg-indigo-950/40 text-indigo-300 animate-pulse";
             icon = <Clock className="w-4 h-4 text-indigo-400 animate-spin" />;
+          } else if (step.status === "skipped") {
+            badgeColor = "border-slate-800/80 bg-slate-950/40 text-slate-500 opacity-60";
+            icon = <MinusCircle className="w-4 h-4 text-slate-600" />;
           }
 
           return (
@@ -156,13 +184,34 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({ orderState, is
       </div>
 
       {orderState && orderState.hold_reason && (
-        <div className="mt-4 p-4 rounded-xl bg-rose-950/40 border border-rose-800/50 flex items-start gap-3">
-          <ShieldAlert className="w-6 h-6 text-rose-400 shrink-0 mt-0.5" />
-          <div>
-            <div className="text-sm font-bold text-rose-300 uppercase tracking-wide">
-              Pipeline Escalation — Order Held
+        <div className={`mt-4 p-4 rounded-xl border flex items-start gap-3 ${
+          orderState.dispatch_status === "FAILED"
+            ? "bg-rose-950/40 border-rose-800/50"
+            : "bg-amber-950/30 border-amber-800/40"
+        }`}>
+          <ShieldAlert className={`w-6 h-6 shrink-0 mt-0.5 ${
+            orderState.dispatch_status === "FAILED" ? "text-rose-400" : "text-amber-400"
+          }`} />
+          <div className="flex-1">
+            <div className="flex items-center justify-between mb-1">
+              <span className={`text-xs font-bold uppercase tracking-wider ${
+                orderState.dispatch_status === "FAILED" ? "text-rose-300" : "text-amber-300"
+              }`}>
+                {orderState.validation_status === "FAILED"
+                  ? "Validation Halt — Order Blocked"
+                  : orderState.inventory_status === "INSUFFICIENT_STOCK"
+                  ? "Inventory Alert — Stock Shortfall"
+                  : orderState.fraud_status === "HIGH_RISK_HELD" || (orderState.fraud_score || 0) >= 70
+                  ? "Fraud Escalation Route — Order Held"
+                  : "Fulfillment Pipeline Notice — Order Held"}
+              </span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300">
+                Ref: {orderState.order_id}
+              </span>
             </div>
-            <div className="text-sm text-rose-200 mt-1 leading-relaxed">{orderState.hold_reason}</div>
+            <div className="text-sm text-slate-200 leading-relaxed font-sans mt-0.5">
+              {orderState.hold_reason}
+            </div>
           </div>
         </div>
       )}

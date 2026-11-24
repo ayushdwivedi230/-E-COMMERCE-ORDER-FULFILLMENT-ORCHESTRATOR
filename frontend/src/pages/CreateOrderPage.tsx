@@ -552,7 +552,15 @@ export const CreateOrderPage: React.FC<CreateOrderPageProps> = ({
                   <div className="font-bold text-rose-300 uppercase tracking-wide text-[11px] mb-2 flex items-center justify-between">
                     <span className="flex items-center gap-1.5">
                       <ShieldAlert className="w-4 h-4 text-rose-400" />
-                      Fraud Escalation Route — Order Held
+                      {orderResult.validation_status === "FAILED"
+                        ? "Validation Halt — Order Blocked"
+                        : orderResult.inventory_status === "INSUFFICIENT_STOCK"
+                        ? "Inventory Alert — Stock Shortage"
+                        : orderResult.fraud_status === "HIGH_RISK_HELD" || (orderResult.fraud_score || 0) >= 70
+                        ? "Fraud Escalation Route — Order Held"
+                        : orderResult.dispatch_status === "FAILED"
+                        ? "System Error — Processing Halted"
+                        : "Fulfillment Pipeline Notice — Order Held"}
                     </span>
                     {onViewOrderDetails && (
                       <button
