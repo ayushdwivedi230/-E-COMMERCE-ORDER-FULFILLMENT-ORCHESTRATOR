@@ -21,9 +21,15 @@ logging.basicConfig(
 logger = logging.getLogger("ecommerce")
 
 
+BUILD_VERSION = "v2.1.0-fix-product-id"  # Render deploy verification tag
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application startup & shutdown events."""
+    logger.info("=" * 60)
+    logger.info(f"BUILD VERSION: {BUILD_VERSION}")
+    logger.info("=" * 60)
     logger.info("Initializing database and tables...")
     init_db()
     
@@ -71,6 +77,7 @@ def health_check(db: Session = Depends(get_db)):
     return {
         "status": "HEALTHY",
         "app_name": settings.APP_NAME,
+        "build_version": BUILD_VERSION,
         "database": "CONNECTED",
         "environment": settings.APP_ENV,
     }
