@@ -8,7 +8,7 @@ import {
   FileText,
   Boxes,
   Activity,
-  Sparkles,
+  ShieldCheck,
 } from "lucide-react";
 
 export type NavPage =
@@ -79,13 +79,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="p-4 border-b border-slate-800/80 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-600/30 text-white font-black text-sm tracking-wider">
-            AG
+            OF
           </div>
           <div>
             <div className="font-bold text-base text-slate-100 flex items-center gap-2 tracking-tight">
-              <span>Antigravity</span>
+              <span>OrderFlow</span>
               <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                SaaS
+                Enterprise
               </span>
             </div>
             <div className="text-xs text-slate-400 font-medium">
@@ -177,11 +177,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <span className="font-mono font-semibold text-slate-200">MSFT Agent v1.26</span>
         </div>
         <div className="flex items-center justify-between text-slate-400">
-          <span className="flex items-center gap-1 font-medium">
-            <Sparkles className="w-3 h-3 text-amber-400" />
-            Course
+          <span className="flex items-center gap-1.5 font-medium">
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            Security
           </span>
-          <span className="font-mono text-slate-300">CSE476 Agentic AI</span>
+          <span className="font-mono text-emerald-400">Active Monitoring</span>
         </div>
       </div>
     </aside>
